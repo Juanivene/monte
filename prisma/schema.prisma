@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Size {
+  XS
+  S
+  M
+  L
+  XL
+  XXL
+}
+
+enum OrderStatus {
+  PENDIENTE
+  CONFIRMADO
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+/// Agrupa productos que son el mismo diseño en distintos colores.
+/// Cada color es un Product independiente (con su propio slug, imágenes
+/// y stock por talle); el group solo permite mostrar swatches que
+/// navegan de un Product a otro.
+model ProductGroup {
+  id       String    @id @default(cuid())
+  products Product[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String
+  price       Decimal  @db.Decimal(10, 2)
+  colorName   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  groupId String?
+  group   ProductGroup? @relation(fields: [groupId], references: [id])
+
+  images     ProductImage[]
+  variants   ProductVariant[]
+  orderItems OrderItem[]
+
+  @@index([categoryId])
+  @@index([groupId])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  order     Int     @default(0)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model ProductVariant {
+  id        String @id @default(cuid())
+  size      Size
+  stock     Int    @default(0)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, size])
+}
+
+model Order {
+  id         String @id @default(cuid())
+  buyerName  String
+  buyerEmail String
+  buyerPhone String
+
+  shippingStreet     String
+  shippingCity       String
+  shippingState      String?
+  shippingPostalCode String?
+  shippingCountry    String  @default("AR")
+  shippingNotes      String?
+
+  total     Decimal     @db.Decimal(10, 2)
+  status    OrderStatus @default(PENDIENTE)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  // snapshot al momento de la compra: si después se edita el producto,
+  // el pedido histórico no debe cambiar
+  productName String
+  size        Size
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+
+  @@index([orderId])
+  @@index([productId])
+}
