@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
@@ -5,6 +7,11 @@ import { buildOrderWhatsAppLink } from "@/lib/whatsapp";
 import { WhatsAppRedirect } from "@/components/shop/WhatsAppRedirect";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Pedido recibido",
+  robots: { index: false },
+};
 
 export default async function OrderReceivedPage({
   params,
@@ -17,6 +24,8 @@ export default async function OrderReceivedPage({
     include: { items: true },
   });
   if (!order) notFound();
+
+  const reference = order.id.slice(-8).toUpperCase();
 
   const whatsappUrl = buildOrderWhatsAppLink({
     orderId: order.id,
@@ -32,44 +41,74 @@ export default async function OrderReceivedPage({
   });
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+    <div className="container-page max-w-2xl py-16 sm:py-24">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold text-neutral-900">¡Gracias, {order.buyerName}!</h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          Recibimos tu pedido <strong>#{order.id.slice(-8).toUpperCase()}</strong>. Te enviamos un
-          email con el resumen.
+        <span className="border-ink/15 mx-auto flex h-14 w-14 items-center justify-center rounded-full border">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            aria-hidden="true"
+            className="text-accent-deep h-6 w-6"
+          >
+            <path d="m5 12.5 4.5 4.5L19 7.5" />
+          </svg>
+        </span>
+
+        <p className="eyebrow text-ink-muted mt-6">Pedido #{reference}</p>
+        <h1 className="headline mt-4 text-4xl sm:text-5xl">¡Gracias, {order.buyerName}!</h1>
+        <p className="text-ink-soft mx-auto mt-4 max-w-md text-sm leading-relaxed">
+          Ya tenemos tu pedido reservado y te mandamos un mail con el resumen. Ahora solo falta
+          coordinar el pago y el envío.
         </p>
       </div>
 
-      <div className="mt-8 rounded-xl border border-neutral-200 p-5">
-        <ul className="divide-y divide-neutral-200">
+      <WhatsAppRedirect whatsappUrl={whatsappUrl} />
+
+      <div className="border-ink/12 mt-12 border">
+        <p className="eyebrow text-ink-muted border-ink/12 border-b px-5 py-3">Tu pedido</p>
+        <ul className="divide-ink/10 divide-y px-5">
           {order.items.map((item) => (
-            <li key={item.id} className="flex items-center justify-between py-3 text-sm">
-              <span>
-                {item.quantity}x {item.productName} — Talle {item.size}
+            <li key={item.id} className="flex items-start justify-between gap-4 py-3.5 text-sm">
+              <span className="text-ink-soft">
+                <span className="text-ink tabular-nums">{item.quantity}×</span>{" "}
+                {item.productName}
+                <span className="text-ink-muted"> · Talle {item.size}</span>
               </span>
-              <span className="font-medium">
+              <span className="text-ink shrink-0 tabular-nums">
                 {formatPrice(Number(item.unitPrice) * item.quantity)}
               </span>
             </li>
           ))}
         </ul>
-        <div className="mt-3 flex items-center justify-between border-t border-neutral-200 pt-3">
-          <span className="text-sm text-neutral-600">Total</span>
-          <span className="text-lg font-semibold">{formatPrice(order.total)}</span>
+        <div className="border-ink/12 flex items-baseline justify-between border-t px-5 py-4">
+          <span className="eyebrow text-ink">Total</span>
+          <span className="headline text-xl tabular-nums">{formatPrice(order.total)}</span>
         </div>
       </div>
 
-      <div className="mt-4 rounded-xl bg-neutral-50 p-5 text-sm text-neutral-600">
-        <p className="font-medium text-neutral-800">Envío a</p>
-        <p className="mt-1">
+      <div className="bg-bone-dark mt-4 px-5 py-5">
+        <p className="eyebrow text-ink-muted">Envío a</p>
+        <p className="text-ink-soft mt-2 text-sm leading-relaxed">
           {order.shippingStreet}, {order.shippingCity}
           {order.shippingState ? `, ${order.shippingState}` : ""}
-          {order.shippingPostalCode ? ` (${order.shippingPostalCode})` : ""}, {order.shippingCountry}
+          {order.shippingPostalCode ? ` (${order.shippingPostalCode})` : ""},{" "}
+          {order.shippingCountry}
         </p>
+        {order.shippingNotes && (
+          <p className="text-ink-muted mt-2 text-xs leading-relaxed">{order.shippingNotes}</p>
+        )}
       </div>
 
-      <WhatsAppRedirect whatsappUrl={whatsappUrl} />
+      <div className="mt-10 text-center">
+        <Link
+          href="/"
+          className="eyebrow text-ink-muted link-underline hover:text-ink transition-colors"
+        >
+          ← Volver a la tienda
+        </Link>
+      </div>
     </div>
   );
 }
