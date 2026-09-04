@@ -23,6 +23,11 @@ enum OrderStatus {
   CANCELADO
 }
 
+enum PaymentMethod {
+  TRANSFERENCIA
+  PAYPAL
+}
+
 model Admin {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -111,6 +116,10 @@ model Order {
   status    OrderStatus @default(PENDIENTE)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+
+  paymentMethod PaymentMethod @default(TRANSFERENCIA)
+  paypalOrderId String?       @unique
+  paidAt        DateTime?
 
   items OrderItem[]
 }

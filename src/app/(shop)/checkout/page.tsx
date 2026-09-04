@@ -9,10 +9,13 @@ import { formatPrice } from "@/lib/money";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Label, FieldError } from "@/components/ui/Field";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { checkoutSchema } from "@/lib/validations";
+import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
 import { submitCheckout } from "@/server/actions/checkout";
+import { PaypalCheckoutButton } from "@/components/shop/PaypalCheckoutButton";
 
 const buyerFieldsSchema = checkoutSchema.omit({ items: true });
+
+type PaymentMethodOption = "transferencia" | "tarjeta";
 
 type FormState = {
   buyerName: string;
@@ -45,11 +48,33 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodOption>("transferencia");
+  const [validatedBuyerData, setValidatedBuyerData] = useState<Omit<
+    CheckoutInput,
+    "items"
+  > | null>(null);
 
   function handleChange(field: keyof FormState) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
+      setValidatedBuyerData(null);
     };
+  }
+
+  function handleContinueToPayment() {
+    setFormError(null);
+    const parsed = buyerFieldsSchema.safeParse(form);
+    if (!parsed.success) {
+      const fieldErrors: Partial<Record<keyof FormState, string>> = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as keyof FormState;
+        if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      return;
+    }
+    setErrors({});
+    setValidatedBuyerData(parsed.data);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -228,17 +253,82 @@ export default function CheckoutPage() {
             </div>
           </section>
 
+          <section>
+            <SectionTitle index="03" title="Método de pago" />
+            <div className="grid grid-cols-2 gap-3">
+              {(
+                [
+                  { value: "transferencia", label: "Transferencia" },
+                  { value: "tarjeta", label: "Tarjeta" },
+                ] as const
+              ).map((option) => {
+                const selected = paymentMethod === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => setPaymentMethod(option.value)}
+                    className={`h-12 border text-xs font-medium tracking-wide transition-colors duration-200 ${
+                      selected
+                        ? "border-ink bg-ink text-bone"
+                        : "border-ink/20 text-ink hover:border-ink"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-ink-muted mt-3 text-xs leading-relaxed">
+              {paymentMethod === "transferencia"
+                ? "Coordinamos el pago y el envío después, por WhatsApp."
+                : "Pagás ahora con tarjeta de crédito o débito, vía PayPal."}
+            </p>
+          </section>
+
           {formError && (
             <p className="dark:border-red-500 dark:bg-red-950 dark:text-red-300 border-l-2 border-red-700 bg-red-50 px-4 py-3 text-sm text-red-800">
               {formError}
             </p>
           )}
 
-          <div className="lg:hidden">
-            <Button type="submit" size="lg" disabled={submitting} className="w-full">
-              {submitting ? "Enviando…" : "Confirmar pedido"}
-            </Button>
-          </div>
+          {paymentMethod === "transferencia" ? (
+            <div className="lg:hidden">
+              <Button type="submit" size="lg" disabled={submitting} className="w-full">
+                {submitting ? "Enviando…" : "Confirmar pedido"}
+              </Button>
+            </div>
+          ) : (
+            <div className="lg:hidden">
+              {validatedBuyerData ? (
+                <PaypalCheckoutButton
+                  buyerData={{
+                    ...validatedBuyerData,
+                    items: items.map((i) => ({
+                      productId: i.productId,
+                      size: i.size,
+                      quantity: i.quantity,
+                    })),
+                  }}
+                  onSuccess={(orderId) => {
+                    clear();
+                    router.push(`/pedido-recibido/${orderId}`);
+                  }}
+                  onError={setFormError}
+                />
+              ) : (
+                <Button
+                  type="button"
+                  size="lg"
+                  className="w-full"
+                  onClick={handleContinueToPayment}
+                >
+                  Continuar al pago
+                </Button>
+              )}
+            </div>
+          )}
         </form>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
@@ -278,20 +368,48 @@ export default function CheckoutPage() {
             </div>
 
             <div className="mt-6 hidden lg:block">
-              <Button
-                type="submit"
-                form="checkout-form"
-                size="lg"
-                disabled={submitting}
-                className="w-full"
-              >
-                {submitting ? "Enviando…" : "Confirmar pedido"}
-              </Button>
+              {paymentMethod === "transferencia" ? (
+                <Button
+                  type="submit"
+                  form="checkout-form"
+                  size="lg"
+                  disabled={submitting}
+                  className="w-full"
+                >
+                  {submitting ? "Enviando…" : "Confirmar pedido"}
+                </Button>
+              ) : validatedBuyerData ? (
+                <PaypalCheckoutButton
+                  buyerData={{
+                    ...validatedBuyerData,
+                    items: items.map((i) => ({
+                      productId: i.productId,
+                      size: i.size,
+                      quantity: i.quantity,
+                    })),
+                  }}
+                  onSuccess={(orderId) => {
+                    clear();
+                    router.push(`/pedido-recibido/${orderId}`);
+                  }}
+                  onError={setFormError}
+                />
+              ) : (
+                <Button
+                  type="button"
+                  size="lg"
+                  className="w-full"
+                  onClick={handleContinueToPayment}
+                >
+                  Continuar al pago
+                </Button>
+              )}
             </div>
 
             <p className="text-ink-muted mt-4 text-[0.7rem] leading-relaxed">
-              No se procesa ningún pago acá. Después de confirmar, coordinamos el pago y el envío
-              por WhatsApp.
+              {paymentMethod === "transferencia"
+                ? "No se procesa ningún pago acá. Después de confirmar, coordinamos el pago y el envío por WhatsApp."
+                : "El pago se procesa de forma segura a través de PayPal."}
             </p>
           </div>
         </aside>
