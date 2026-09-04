@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/money";
 import { Button } from "@/components/ui/Button";
@@ -86,13 +87,13 @@ export default function CheckoutPage() {
 
   if (isHydrated && items.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <div className="container-page py-20 sm:py-28">
         <EmptyState
           title="Tu carrito está vacío"
-          description="Agregá productos antes de hacer el checkout."
+          description="Agregá algo antes de completar el pedido."
           action={
             <Link href="/">
-              <Button>Ver catálogo</Button>
+              <Button size="lg">Ver colección</Button>
             </Link>
           }
         />
@@ -101,114 +102,209 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <h1 className="text-xl font-semibold text-neutral-900">Finalizar pedido</h1>
-
-      <form onSubmit={handleSubmit} className="mt-6 space-y-8">
-        <section>
-          <h2 className="text-sm font-medium text-neutral-900">Tus datos</h2>
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label htmlFor="buyerName" required>
-                Nombre y apellido
-              </Label>
-              <Input id="buyerName" value={form.buyerName} onChange={handleChange("buyerName")} />
-              <FieldError message={errors.buyerName} />
-            </div>
-            <div>
-              <Label htmlFor="buyerEmail" required>
-                Email
-              </Label>
-              <Input
-                id="buyerEmail"
-                type="email"
-                value={form.buyerEmail}
-                onChange={handleChange("buyerEmail")}
-              />
-              <FieldError message={errors.buyerEmail} />
-            </div>
-            <div>
-              <Label htmlFor="buyerPhone" required>
-                Teléfono
-              </Label>
-              <Input id="buyerPhone" value={form.buyerPhone} onChange={handleChange("buyerPhone")} />
-              <FieldError message={errors.buyerPhone} />
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-sm font-medium text-neutral-900">Dirección de envío</h2>
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label htmlFor="shippingStreet" required>
-                Calle y número
-              </Label>
-              <Input
-                id="shippingStreet"
-                value={form.shippingStreet}
-                onChange={handleChange("shippingStreet")}
-              />
-              <FieldError message={errors.shippingStreet} />
-            </div>
-            <div>
-              <Label htmlFor="shippingCity" required>
-                Localidad
-              </Label>
-              <Input id="shippingCity" value={form.shippingCity} onChange={handleChange("shippingCity")} />
-              <FieldError message={errors.shippingCity} />
-            </div>
-            <div>
-              <Label htmlFor="shippingState">Provincia</Label>
-              <Input id="shippingState" value={form.shippingState} onChange={handleChange("shippingState")} />
-            </div>
-            <div>
-              <Label htmlFor="shippingPostalCode">Código postal</Label>
-              <Input
-                id="shippingPostalCode"
-                value={form.shippingPostalCode}
-                onChange={handleChange("shippingPostalCode")}
-              />
-            </div>
-            <div>
-              <Label htmlFor="shippingCountry" required>
-                País
-              </Label>
-              <Input
-                id="shippingCountry"
-                value={form.shippingCountry}
-                onChange={handleChange("shippingCountry")}
-              />
-              <FieldError message={errors.shippingCountry} />
-            </div>
-            <div className="sm:col-span-2">
-              <Label htmlFor="shippingNotes">Notas para la entrega (opcional)</Label>
-              <Textarea
-                id="shippingNotes"
-                rows={3}
-                value={form.shippingNotes}
-                onChange={handleChange("shippingNotes")}
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-xl bg-neutral-50 p-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-neutral-600">{items.length} producto(s)</span>
-            <span className="font-semibold text-neutral-900">{formatPrice(subtotal)}</span>
-          </div>
-        </section>
-
-        {formError && <p className="text-sm text-red-600">{formError}</p>}
-
-        <Button type="submit" disabled={submitting} className="w-full">
-          {submitting ? "Enviando..." : "Confirmar pedido"}
-        </Button>
-        <p className="text-center text-xs text-neutral-500">
-          No se procesa ningún pago acá. Vamos a coordinar el pago y el envío por WhatsApp.
+    <div className="container-page py-12 sm:py-16">
+      <div className="border-ink/12 border-b pb-6">
+        <p className="eyebrow text-ink-muted">Paso 2 de 2</p>
+        <h1 className="headline mt-3 text-4xl sm:text-5xl">Finalizar pedido</h1>
+        <p className="text-ink-muted mt-3 max-w-lg text-sm leading-relaxed">
+          Dejanos tus datos y el pedido queda reservado. El pago y el envío los coordinamos
+          después, por WhatsApp.
         </p>
-      </form>
+      </div>
+
+      <div className="grid gap-10 pt-10 lg:grid-cols-[1fr_20rem] lg:gap-16">
+        <form id="checkout-form" onSubmit={handleSubmit} className="space-y-12" noValidate>
+          <section>
+            <SectionTitle index="01" title="Tus datos" />
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Label htmlFor="buyerName" required>
+                  Nombre y apellido
+                </Label>
+                <Input
+                  id="buyerName"
+                  autoComplete="name"
+                  value={form.buyerName}
+                  onChange={handleChange("buyerName")}
+                />
+                <FieldError message={errors.buyerName} />
+              </div>
+              <div>
+                <Label htmlFor="buyerEmail" required>
+                  Email
+                </Label>
+                <Input
+                  id="buyerEmail"
+                  type="email"
+                  autoComplete="email"
+                  value={form.buyerEmail}
+                  onChange={handleChange("buyerEmail")}
+                />
+                <FieldError message={errors.buyerEmail} />
+              </div>
+              <div>
+                <Label htmlFor="buyerPhone" required>
+                  Teléfono
+                </Label>
+                <Input
+                  id="buyerPhone"
+                  type="tel"
+                  autoComplete="tel"
+                  value={form.buyerPhone}
+                  onChange={handleChange("buyerPhone")}
+                />
+                <FieldError message={errors.buyerPhone} />
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <SectionTitle index="02" title="Dirección de envío" />
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Label htmlFor="shippingStreet" required>
+                  Calle y número
+                </Label>
+                <Input
+                  id="shippingStreet"
+                  autoComplete="street-address"
+                  value={form.shippingStreet}
+                  onChange={handleChange("shippingStreet")}
+                />
+                <FieldError message={errors.shippingStreet} />
+              </div>
+              <div>
+                <Label htmlFor="shippingCity" required>
+                  Localidad
+                </Label>
+                <Input
+                  id="shippingCity"
+                  autoComplete="address-level2"
+                  value={form.shippingCity}
+                  onChange={handleChange("shippingCity")}
+                />
+                <FieldError message={errors.shippingCity} />
+              </div>
+              <div>
+                <Label htmlFor="shippingState">Provincia</Label>
+                <Input
+                  id="shippingState"
+                  autoComplete="address-level1"
+                  value={form.shippingState}
+                  onChange={handleChange("shippingState")}
+                />
+              </div>
+              <div>
+                <Label htmlFor="shippingPostalCode">Código postal</Label>
+                <Input
+                  id="shippingPostalCode"
+                  autoComplete="postal-code"
+                  value={form.shippingPostalCode}
+                  onChange={handleChange("shippingPostalCode")}
+                />
+              </div>
+              <div>
+                <Label htmlFor="shippingCountry" required>
+                  País
+                </Label>
+                <Input
+                  id="shippingCountry"
+                  autoComplete="country-name"
+                  value={form.shippingCountry}
+                  onChange={handleChange("shippingCountry")}
+                />
+                <FieldError message={errors.shippingCountry} />
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="shippingNotes">Notas para la entrega (opcional)</Label>
+                <Textarea
+                  id="shippingNotes"
+                  rows={3}
+                  placeholder="Timbre, horarios, referencias…"
+                  value={form.shippingNotes}
+                  onChange={handleChange("shippingNotes")}
+                />
+              </div>
+            </div>
+          </section>
+
+          {formError && (
+            <p className="border-l-2 border-red-700 bg-red-50 px-4 py-3 text-sm text-red-800">
+              {formError}
+            </p>
+          )}
+
+          <div className="lg:hidden">
+            <Button type="submit" size="lg" disabled={submitting} className="w-full">
+              {submitting ? "Enviando…" : "Confirmar pedido"}
+            </Button>
+          </div>
+        </form>
+
+        <aside className="lg:sticky lg:top-28 lg:self-start">
+          <div className="border-ink/12 border p-6">
+            <p className="eyebrow text-ink-muted">Tu pedido</p>
+
+            <ul className="divide-ink/10 mt-5 divide-y">
+              {items.map((item) => (
+                <li key={`${item.productId}-${item.size}`} className="flex gap-3 py-3">
+                  <div className="bg-bone-dark relative aspect-3/4 w-12 shrink-0 overflow-hidden">
+                    {item.image && (
+                      <Image
+                        src={item.image}
+                        alt=""
+                        fill
+                        sizes="48px"
+                        className="object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-ink truncate text-xs font-medium">{item.productName}</p>
+                    <p className="text-ink-muted mt-0.5 text-[0.7rem]">
+                      {item.quantity} × Talle {item.size}
+                    </p>
+                  </div>
+                  <p className="text-ink shrink-0 text-xs tabular-nums">
+                    {formatPrice(item.price * item.quantity)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+
+            <div className="border-ink/12 mt-4 flex items-baseline justify-between border-t pt-4">
+              <span className="eyebrow text-ink">Total</span>
+              <span className="headline text-xl tabular-nums">{formatPrice(subtotal)}</span>
+            </div>
+
+            <div className="mt-6 hidden lg:block">
+              <Button
+                type="submit"
+                form="checkout-form"
+                size="lg"
+                disabled={submitting}
+                className="w-full"
+              >
+                {submitting ? "Enviando…" : "Confirmar pedido"}
+              </Button>
+            </div>
+
+            <p className="text-ink-muted mt-4 text-[0.7rem] leading-relaxed">
+              No se procesa ningún pago acá. Después de confirmar, coordinamos el pago y el envío
+              por WhatsApp.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function SectionTitle({ index, title }: { index: string; title: string }) {
+  return (
+    <div className="border-ink/12 mb-6 flex items-baseline gap-3 border-b pb-3">
+      <span className="headline text-accent-deep text-xs">{index}</span>
+      <h2 className="headline text-ink text-lg">{title}</h2>
     </div>
   );
 }

@@ -37,3 +37,18 @@ export function buildOrderWhatsAppLink(params: {
   const text = encodeURIComponent(lines.join("\n"));
   return `https://wa.me/${number}?text=${text}`;
 }
+
+/**
+ * Link de contacto genérico (consultas de talle, disponibilidad, etc.).
+ * Devuelve null si todavía no se configuró WHATSAPP_NUMBER, así la UI
+ * simplemente no muestra el CTA en vez de romperse.
+ */
+export function buildContactWhatsAppLink(message?: string): string | null {
+  const number = process.env.WHATSAPP_NUMBER;
+  if (!number) return null;
+
+  const text = encodeURIComponent(
+    message ?? "¡Hola! Estaba mirando la tienda y quería hacerles una consulta.",
+  );
+  return `https://wa.me/${number}?text=${text}`;
+}

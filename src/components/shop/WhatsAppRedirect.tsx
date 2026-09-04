@@ -10,13 +10,21 @@ export function WhatsAppRedirect({ whatsappUrl }: { whatsappUrl: string }) {
   }, [whatsappUrl]);
 
   return (
-    <div className="mt-8 text-center">
-      <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-        <Button className="w-full sm:w-auto">Continuar por WhatsApp</Button>
-      </a>
-      <p className="mt-2 text-xs text-neutral-500">
-        Coordiná el pago y el envío directamente con nosotros.
+    <div className="border-ink/12 mt-10 border p-6 text-center sm:p-8">
+      <p className="eyebrow text-ink-muted">Último paso</p>
+      <p className="text-ink-soft mx-auto mt-3 max-w-sm text-sm leading-relaxed">
+        Abrimos WhatsApp con el resumen listo para enviar. Si no se abrió solo, tocá acá.
       </p>
+      <a
+        href={whatsappUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-6 inline-block w-full sm:w-auto"
+      >
+        <Button size="lg" className="w-full sm:w-auto">
+          Continuar por WhatsApp
+        </Button>
+      </a>
     </div>
   );
 }
