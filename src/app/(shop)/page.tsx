@@ -52,7 +52,10 @@ export default async function HomePage({
         />
       </div>
 
-      <section id="catalogo" className="container-page scroll-mt-28 py-16 sm:py-24">
+      <section
+        id="catalogo"
+        className="container-page scroll-mt-28 py-16 sm:py-24"
+      >
         <Reveal>
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -62,8 +65,8 @@ export default async function HomePage({
               </h2>
             </div>
             <p className="text-ink-muted max-w-sm text-sm leading-relaxed">
-              Talles del XS al XXL. Los stocks se actualizan en vivo: si un talle no aparece, es
-              porque ya voló.
+              Talles del XS al XXL. Los stocks se actualizan en vivo: si un
+              talle no aparece, es porque ya voló.
             </p>
           </div>
 
@@ -78,7 +81,9 @@ export default async function HomePage({
           <div className="mt-10">
             <EmptyState
               title={
-                activeCategory ? `Nada en ${activeCategory.name} por ahora` : "Se viene la primera"
+                activeCategory
+                  ? `Nada en ${activeCategory.name} por ahora`
+                  : "Se viene la primera"
               }
               description={
                 activeCategory
@@ -104,3 +109,4 @@ export default async function HomePage({
     </>
   );
 }
+

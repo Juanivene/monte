@@ -12,13 +12,17 @@ export function CategoryFilter({
   return (
     <div className="border-ink/12 flex items-end justify-between gap-6 border-b">
       <div className="scrollbar-none flex gap-7 overflow-x-auto">
-        <FilterLink href="/" active={!active}>
+        {/*
+          #catalogo: estos pills ya viven en esa sección, pero sin el hash
+          Next igual scrollea al top de la página (el Hero) en cada click.
+        */}
+        <FilterLink href="/#catalogo" active={!active}>
           Todo
         </FilterLink>
         {categories.map((category) => (
           <FilterLink
             key={category.slug}
-            href={`/?categoria=${category.slug}`}
+            href={`/?categoria=${category.slug}#catalogo`}
             active={active === category.slug}
           >
             {category.name}
