@@ -45,7 +45,7 @@ export default async function HomePage({
 
       <div className="bg-night text-paper py-5 sm:py-7">
         <Marquee
-          items={["Otoño Invierno 26", "Monte", "Tiradas cortas", "Tucumán"]}
+          items={["First Drop 2026", "Monte", "Miami"]}
           separator="—"
           speed="34s"
           className="headline text-[13vw] leading-none sm:text-[7rem]"
@@ -61,7 +61,7 @@ export default async function HomePage({
             <div>
               <p className="eyebrow text-ink-muted">Catálogo</p>
               <h2 className="headline mt-3 text-4xl sm:text-5xl">
-                {activeCategory ? activeCategory.name : "Toda la colección"}
+                {activeCategory ? activeCategory.name : "Todo el Drop"}
               </h2>
             </div>
             <p className="text-ink-muted max-w-sm text-sm leading-relaxed">

@@ -29,9 +29,9 @@ export function Hero({ productCount }: { productCount: number }) {
 
           <Reveal delay={160}>
             <p className="text-ink-soft mt-7 max-w-md text-[0.95rem] leading-relaxed">
-              Buzos, remeras y accesorios de diseño independiente. Los pensamos
-              y los producimos en Tucumán, en tiradas cortas, para que aguanten
-              la calle y también el verano.
+              Prendas y accesorios agénero de diseño independiente. Con base en
+              Miami y visión de expansión global, trabajamos en tiradas cortas y
+              con materiales naturales, reduciendo nuestra huella ambiental.
             </p>
           </Reveal>
 
@@ -90,7 +90,7 @@ export function Hero({ productCount }: { productCount: number }) {
             </div>
 
             <span className="eyebrow text-ink-muted absolute -right-2 top-6 hidden origin-right -rotate-90 lg:block">
-              Tucumán · 2026
+              Miami · 2026
             </span>
           </div>
         </div>
