@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
@@ -14,6 +15,13 @@ export default async function AdminOrderDetailPage({
 
   return (
     <div className="max-w-3xl">
+      <Link
+        href="/admin/pedidos"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900"
+      >
+        ← Volver a pedidos
+      </Link>
+
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-xl font-semibold text-neutral-900">
           Pedido #{order.id.slice(-8).toUpperCase()}

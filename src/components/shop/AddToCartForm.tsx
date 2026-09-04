@@ -1,87 +1,122 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/Button";
 import { SIZES, type Size } from "@/types";
 
-export function AddToCartForm({
-  product,
-}: {
-  product: {
-    id: string;
-    slug: string;
-    name: string;
-    colorName: string | null;
-    price: number | string | { toString(): string };
-    images: { url: string }[];
-    variants: { size: Size; stock: number }[];
-  };
-}) {
+/** Ya serializado por el server component: nada de Decimal de Prisma acá. */
+export type AddToCartProduct = {
+  id: string;
+  slug: string;
+  name: string;
+  colorName: string | null;
+  price: number;
+  images: { url: string }[];
+  variants: { size: Size; stock: number }[];
+};
+
+export function AddToCartForm({ product }: { product: AddToCartProduct }) {
   const { addItem } = useCart();
+  const router = useRouter();
   const [size, setSize] = useState<Size | null>(null);
-  const [added, setAdded] = useState(false);
 
   const stockBySize = new Map(product.variants.map((v) => [v.size, v.stock]));
-  const price = Number(product.price.toString());
   const hasAnyStock = SIZES.some((s) => (stockBySize.get(s) ?? 0) > 0);
+  const selectedStock = size ? (stockBySize.get(size) ?? 0) : 0;
 
   function handleAdd() {
     if (!size) return;
+
     addItem({
       productId: product.id,
       productName: product.name,
       slug: product.slug,
       image: product.images[0]?.url ?? null,
       colorName: product.colorName,
-      price,
+      price: product.price,
       size,
       quantity: 1,
       maxStock: stockBySize.get(size) ?? 0,
     });
-    setAdded(true);
-    window.setTimeout(() => setAdded(false), 1500);
+
+    toast.success("Agregado al carrito", {
+      description: `${product.name}${product.colorName ? ` · ${product.colorName}` : ""} — Talle ${size}`,
+      action: { label: "Ver carrito", onClick: () => router.push("/carrito") },
+    });
   }
 
   if (!hasAnyStock) {
     return (
-      <p className="rounded-lg bg-neutral-100 px-4 py-3 text-sm text-neutral-600">
-        Sin stock disponible por el momento.
-      </p>
+      <div className="border-ink/12 border px-5 py-4">
+        <p className="eyebrow text-ink">Agotado</p>
+        <p className="text-ink-muted mt-2 text-sm">
+          Esta prenda salió en tirada corta y ya no quedan unidades. Escribinos si querés que te
+          avisemos cuando vuelva.
+        </p>
+      </div>
     );
   }
 
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-neutral-800">Talle</p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex items-baseline justify-between gap-4">
+        <p className="eyebrow text-ink-muted">Talle</p>
+        <p className="text-ink-muted text-xs">Moldería oversize</p>
+      </div>
+
+      <div className="mt-3 grid grid-cols-6 gap-2">
         {SIZES.map((s) => {
           const stock = stockBySize.get(s) ?? 0;
           const disabled = stock <= 0;
+          const selected = size === s;
+
           return (
             <button
               key={s}
               type="button"
               disabled={disabled}
               onClick={() => setSize(s)}
-              className={`h-11 min-w-11 rounded-lg border px-3 text-sm font-medium transition ${
+              aria-pressed={selected}
+              className={`relative h-12 border text-xs font-medium tracking-wide transition-colors duration-200 ${
                 disabled
-                  ? "cursor-not-allowed border-neutral-200 text-neutral-300 line-through"
-                  : size === s
-                    ? "border-neutral-900 bg-neutral-900 text-white"
-                    : "border-neutral-300 text-neutral-700 hover:border-neutral-500"
+                  ? "border-ink/10 text-ink-muted/50 cursor-not-allowed"
+                  : selected
+                    ? "border-ink bg-ink text-bone"
+                    : "border-ink/20 text-ink hover:border-ink"
               }`}
             >
               {s}
+              {disabled && (
+                <span
+                  aria-hidden="true"
+                  className="bg-ink/15 absolute inset-x-2 top-1/2 h-px -rotate-12"
+                />
+              )}
             </button>
           );
         })}
       </div>
 
-      <Button type="button" onClick={handleAdd} disabled={!size} className="mt-5 w-full sm:w-auto">
-        {added ? "¡Agregado!" : "Agregar al carrito"}
+      <p className="text-ink-muted mt-3 h-4 text-xs">
+        {!size
+          ? "Elegí un talle para continuar."
+          : selectedStock <= 3
+            ? `Quedan ${selectedStock} ${selectedStock === 1 ? "unidad" : "unidades"} en ${size}.`
+            : `Disponible en ${size}.`}
+      </p>
+
+      <Button
+        type="button"
+        onClick={handleAdd}
+        disabled={!size}
+        size="lg"
+        className="mt-5 w-full"
+      >
+        Agregar al carrito
       </Button>
-      {!size && <p className="mt-2 text-xs text-neutral-500">Elegí un talle para continuar</p>}
     </div>
   );
 }

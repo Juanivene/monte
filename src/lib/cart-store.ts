@@ -15,6 +15,13 @@ function readCart(): CartItem[] {
   }
 }
 
+/**
+ * Snapshot de servidor: siempre la misma referencia. Si se devolviera un []
+ * nuevo en cada llamada, useSyncExternalStore lo lee como cambio de estado y
+ * React avisa por posible loop infinito.
+ */
+const EMPTY: CartItem[] = [];
+
 let items: CartItem[] = readCart();
 const listeners = new Set<Listener>();
 
@@ -34,7 +41,7 @@ export const cartStore = {
     return items;
   },
   getServerSnapshot(): CartItem[] {
-    return [];
+    return EMPTY;
   },
   addItem(newItem: CartItem) {
     const existing = items.find(

@@ -1,6 +1,7 @@
-const formatter = new Intl.NumberFormat("en-US", {
+const formatter = new Intl.NumberFormat("es-AR", {
   style: "currency",
-  currency: "USD",
+  currency: "ARS",
+  maximumFractionDigits: 0,
 });
 
 /** Acepta number, string o Prisma.Decimal (via toString/toNumber). */

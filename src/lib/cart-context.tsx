@@ -2,6 +2,7 @@
 
 import { useMemo, useSyncExternalStore } from "react";
 import { cartStore } from "./cart-store";
+import { useHydrated } from "./use-hydrated";
 
 export function useCart() {
   const items = useSyncExternalStore(
@@ -10,12 +11,13 @@ export function useCart() {
     cartStore.getServerSnapshot,
   );
 
+  const isHydrated = useHydrated();
+
   const subtotal = useMemo(
     () => items.reduce((sum, i) => sum + i.price * i.quantity, 0),
     [items],
   );
   const itemCount = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items]);
-  const isHydrated = typeof window !== "undefined";
 
   return {
     items,
