@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { lookbookStrip } from "@/lib/lookbook";
 import { Reveal } from "@/components/ui/Reveal";
+import { LookbookStrip } from "@/components/shop/LookbookStrip";
 
 export function Lookbook() {
   return (
@@ -24,25 +24,8 @@ export function Lookbook() {
       </div>
 
       {/* Tira horizontal: sangra hasta el borde derecho para que se note que sigue */}
-      <div className="scrollbar-none mt-10 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 sm:gap-4 sm:px-8 xl:px-10">
-        {lookbookStrip.map((shot, i) => (
-          <figure
-            key={shot.src.src}
-            className="bg-bone-dark relative h-[58vh] max-h-[600px] min-h-[340px] shrink-0 snap-start overflow-hidden"
-            style={{ aspectRatio: `${shot.src.width} / ${shot.src.height}` }}
-          >
-            <Image
-              src={shot.src}
-              alt={shot.alt}
-              placeholder="blur"
-              fill
-              loading={i < 2 ? "eager" : "lazy"}
-              sizes="(min-width: 640px) 45vw, 80vw"
-              className="object-cover transition-transform duration-1000 ease-out hover:scale-105"
-            />
-          </figure>
-        ))}
-        <div aria-hidden="true" className="w-1 shrink-0" />
+      <div className="mt-10">
+        <LookbookStrip shots={lookbookStrip} />
       </div>
     </section>
   );

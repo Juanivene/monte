@@ -10,7 +10,7 @@ const messages = [
 
 export function AnnouncementBar() {
   return (
-    <div className="bg-ink text-bone/80">
+    <div className="bg-night text-paper/80">
       <Marquee
         items={messages}
         className="eyebrow py-2.5 text-[0.625rem]"

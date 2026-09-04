@@ -43,7 +43,7 @@ export default async function HomePage({
     <>
       <Hero productCount={totalActive} />
 
-      <div className="bg-ink text-bone py-5 sm:py-7">
+      <div className="bg-night text-paper py-5 sm:py-7">
         <Marquee
           items={["Otoño Invierno 26", "Monte", "Tiradas cortas", "Tucumán"]}
           separator="—"

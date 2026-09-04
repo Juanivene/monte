@@ -229,7 +229,7 @@ export default function CheckoutPage() {
           </section>
 
           {formError && (
-            <p className="border-l-2 border-red-700 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <p className="dark:border-red-500 dark:bg-red-950 dark:text-red-300 border-l-2 border-red-700 bg-red-50 px-4 py-3 text-sm text-red-800">
               {formError}
             </p>
           )}

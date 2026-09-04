@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/*
+ * Tailwind v4 no trae más `darkMode: "class"` por config: el variant `dark:`
+ * se define acá mismo. Se dispara con `data-theme="dark"` en el <html>, que
+ * pone next-themes (ver ThemeProvider en layout.tsx) — no con la preferencia
+ * del sistema directamente, así el toggle manual siempre manda.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* -------------------------------------------------------------------------
    Paleta Monte — sacada de las fotos de la marca:
    hormigón porteño, buzos teal/verde/negro, arena y verde de playa.
@@ -13,6 +21,16 @@
   --color-bone-dark: #ebe6db;
   --color-sand: #ded5c4;
   --color-concrete: #9d9992;
+
+  /*
+   * Fijos, no se redefinen en :root[data-theme="dark"] (a diferencia de
+   * ink/bone). Son para las franjas pensadas como "siempre oscuras" pase lo
+   * que pase con el tema — footer, la marquesina grande, el anuncio del
+   * header —, así no terminan invirtiéndose a claras cuando el resto de la
+   * página se pone oscura.
+   */
+  --color-night: #0e100f;
+  --color-paper: #f6f3ed;
 
   --color-accent: #5a8697;
   --color-accent-deep: #3d6272;
@@ -70,6 +88,31 @@
   --font-display: var(--font-archivo);
 }
 
+/*
+ * Paleta oscura. Redefine las mismas variables de --color-* del @theme de
+ * arriba, así que no hace falta tocar ningún componente: cada clase que ya
+ * usa bg-ink/text-bone/etc. recalcula sola. `ink` y `bone` básicamente
+ * intercambian roles (texto claro sobre fondo oscuro) — el único costo es
+ * que un par de elementos pensados como "siempre oscuros" (el botón
+ * primario, el footer, la marquesina) pasan a ser "siempre claros" en vez
+ * de quedarse negros sobre un fondo que ahora también es negro.
+ */
+:root[data-theme="dark"] {
+  --color-ink: #f3efe6;
+  --color-ink-soft: #d7d2c5;
+  --color-ink-muted: #99968c;
+
+  --color-bone: #131210;
+  --color-bone-dark: #1e1c17;
+  --color-sand: #2b2822;
+  --color-concrete: #6f6c62;
+
+  --color-accent: #6fa3b3;
+  --color-accent-deep: #8cc0d0;
+  --color-forest: #6fa08a;
+  --color-olive: #b3a876;
+}
+
 /* -------------------------------------------------------------------------
    Base
    ---------------------------------------------------------------------- */
@@ -77,6 +120,11 @@
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] {
+    color-scheme: dark;
   }
 
   body {

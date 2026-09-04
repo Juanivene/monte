@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export type HeaderCategory = { slug: string; name: string };
 
@@ -97,6 +98,7 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
             </nav>
   
             <div className="flex items-center gap-2 sm:gap-4">
+              <ThemeToggle />
               <CartLink itemCount={isHydrated ? itemCount : 0} />
   
               <button

@@ -94,7 +94,7 @@ function GalleryArrow({
       type="button"
       onClick={onClick}
       aria-label={isPrev ? "Imagen anterior" : "Imagen siguiente"}
-      className={`bg-bone/85 text-ink absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center opacity-0 backdrop-blur-sm transition-opacity duration-300 hover:bg-white focus-visible:opacity-100 group-hover:opacity-100 ${
+      className={`bg-bone/85 text-ink absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center opacity-0 backdrop-blur-sm transition-opacity duration-300 hover:bg-bone focus-visible:opacity-100 group-hover:opacity-100 ${
         isPrev ? "left-3" : "right-3"
       }`}
     >

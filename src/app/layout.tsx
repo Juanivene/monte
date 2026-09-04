@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Archivo } from "next/font/google";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -43,7 +44,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0e100f",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f3ed" },
+    { media: "(prefers-color-scheme: dark)", color: "#131210" },
+  ],
 };
 
 export default function RootLayout({
@@ -52,12 +56,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    // suppressHydrationWarning: next-themes fija data-theme en <html> con un
+    // script que corre antes de hidratar, así que el atributo del servidor
+    // (que no lo tiene) y el del cliente difieren a propósito.
     <html
       lang="es"
+      suppressHydrationWarning
       className={`${inter.variable} ${archivo.variable} h-full antialiased`}
     >
       <body className="bg-bone text-ink flex min-h-full flex-col">
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

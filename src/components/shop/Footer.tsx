@@ -11,7 +11,7 @@ export function Footer({
   categories: { slug: string; name: string }[];
 }) {
   return (
-    <footer className="bg-ink text-bone mt-24 sm:mt-32">
+    <footer className="bg-night text-paper mt-24 sm:mt-32">
       {/* Franja editorial: foto ancha + claim */}
       <div className="relative isolate overflow-hidden">
         <Image
@@ -22,7 +22,7 @@ export function Footer({
           className="absolute inset-0 -z-10 h-full w-full object-cover object-[50%_35%] opacity-35"
         />
         <div className="container-page py-20 text-center sm:py-28">
-          <p className="eyebrow text-bone/60">Tucumán · Argentina</p>
+          <p className="eyebrow text-paper/60">Tucumán · Argentina</p>
           <p className="headline mx-auto mt-5 max-w-3xl text-[10vw] leading-[0.92] sm:text-6xl lg:text-7xl">
             Tiradas cortas,
             <br />
@@ -37,7 +37,7 @@ export function Footer({
             {siteName}
             <span className="text-accent">.</span>
           </p>
-          <p className="text-bone/55 mt-4 max-w-xs text-sm leading-relaxed">
+          <p className="text-paper/55 mt-4 max-w-xs text-sm leading-relaxed">
             Indumentaria de diseño independiente. Cada prenda sale en cantidades
             chicas: cuando se agota, se agota.
           </p>
@@ -58,11 +58,11 @@ export function Footer({
 
         <FooterColumn title="Ayuda">
           <FooterLink href="/carrito">Mi carrito</FooterLink>
-          <li className="text-bone/55 text-sm">Envíos a todo el país</li>
-          <li className="text-bone/55 text-sm">
+          <li className="text-paper/55 text-sm">Envíos a todo el país</li>
+          <li className="text-paper/55 text-sm">
             Cambios dentro de los 30 días
           </li>
-          <li className="text-bone/55 text-sm">Pago coordinado por WhatsApp</li>
+          <li className="text-paper/55 text-sm">Pago coordinado por WhatsApp</li>
         </FooterColumn>
 
         <FooterColumn title="Seguinos">
@@ -71,7 +71,7 @@ export function Footer({
               href="https://instagram.com/monteclub.arg"
               target="_blank"
               rel="noopener noreferrer"
-              className="link-underline text-bone/55 hover:text-bone text-sm transition-colors"
+              className="link-underline text-paper/55 hover:text-paper text-sm transition-colors"
             >
               Instagram
             </a>
@@ -82,7 +82,7 @@ export function Footer({
                 href={`https://wa.me/${whatsappNumber}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="link-underline text-bone/55 hover:text-bone text-sm transition-colors"
+                className="link-underline text-paper/55 hover:text-paper text-sm transition-colors"
               >
                 WhatsApp
               </a>
@@ -91,13 +91,13 @@ export function Footer({
         </FooterColumn>
       </div>
 
-      <div className="border-bone/10 border-t">
-        <div className="container-page text-bone/40 flex flex-col gap-2 py-6 text-xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="border-paper/10 border-t">
+        <div className="container-page text-paper/40 flex flex-col gap-2 py-6 text-xs sm:flex-row sm:items-center sm:justify-between">
           <span>
             © {new Date().getFullYear()} {siteName}. Todos los derechos
             reservados.
           </span>
-          <span className="eyebrow text-bone/30">Made In Tucumán</span>
+          <span className="eyebrow text-paper/30">Made In Tucumán</span>
         </div>
       </div>
     </footer>
@@ -113,7 +113,7 @@ function FooterColumn({
 }) {
   return (
     <div>
-      <p className="eyebrow text-bone/40">{title}</p>
+      <p className="eyebrow text-paper/40">{title}</p>
       <ul className="mt-5 space-y-3">{children}</ul>
     </div>
   );
@@ -130,7 +130,7 @@ function FooterLink({
     <li>
       <Link
         href={href}
-        className="link-underline text-bone/55 hover:text-bone text-sm transition-colors"
+        className="link-underline text-paper/55 hover:text-paper text-sm transition-colors"
       >
         {children}
       </Link>
