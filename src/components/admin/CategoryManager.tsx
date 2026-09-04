@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, FieldError } from "@/components/ui/Field";
+import { confirmToast } from "@/lib/confirm-toast";
 import { createCategory, updateCategory, deleteCategory } from "@/server/actions/categories";
 
 type Category = { id: string; name: string; slug: string };
@@ -24,25 +26,36 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
     setSubmitting(false);
     if (!result.ok) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Categoría creada.");
     setName("");
     router.refresh();
   }
 
   async function handleUpdate(id: string) {
+    if (!(await confirmToast("¿Guardar los cambios de esta categoría?"))) return;
     const result = await updateCategory(id, { name: editingName });
     if (!result.ok) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Categoría actualizada.");
     setEditingId(null);
     router.refresh();
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("¿Eliminar esta categoría? Los productos quedarán sin categoría.")) return;
-    await deleteCategory(id);
+    if (!(await confirmToast("¿Eliminar esta categoría? Los productos quedarán sin categoría.")))
+      return;
+    const result = await deleteCategory(id);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Categoría eliminada.");
     router.refresh();
   }
 

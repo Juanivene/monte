@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Field";
+import { confirmToast } from "@/lib/confirm-toast";
 import { linkAsColorVariant, unlinkColorVariant } from "@/server/actions/products";
 
 type LinkedProduct = { id: string; name: string; colorName: string | null };
@@ -25,14 +27,29 @@ export function ColorVariantLinker({
   async function handleLink() {
     if (!selected) return;
     setLinking(true);
-    await linkAsColorVariant(productId, selected);
+    const result = await linkAsColorVariant(productId, selected);
     setLinking(false);
+
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+
+    toast.success("Color vinculado.");
     setSelected("");
     router.refresh();
   }
 
   async function handleUnlink(otherId: string) {
-    await unlinkColorVariant(otherId);
+    if (!(await confirmToast("¿Desvincular este color del producto?"))) return;
+    const result = await unlinkColorVariant(otherId);
+
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+
+    toast.success("Color desvinculado.");
     router.refresh();
   }
 

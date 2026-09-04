@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { generateUniqueSlug } from "@/lib/unique-slug";
@@ -100,7 +101,14 @@ export async function updateProduct(
 
 export async function deleteProduct(id: string): Promise<ActionResult> {
   await requireAdmin();
-  await prisma.product.delete({ where: { id } });
+  try {
+    await prisma.product.delete({ where: { id } });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
+      return { ok: false, error: "No se puede eliminar: el producto tiene pedidos asociados." };
+    }
+    throw err;
+  }
   revalidateShop();
   return { ok: true };
 }

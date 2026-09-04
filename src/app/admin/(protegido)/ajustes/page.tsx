@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, FieldError } from "@/components/ui/Field";
+import { confirmToast } from "@/lib/confirm-toast";
 import { changePassword } from "@/server/actions/auth";
 
 export default function AdminSettingsPage() {
@@ -10,18 +12,18 @@ export default function AdminSettingsPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSuccess(false);
 
     if (newPassword !== confirmPassword) {
       setError("Las contraseñas nuevas no coinciden");
       return;
     }
+
+    if (!(await confirmToast("¿Confirmás el cambio de contraseña?"))) return;
 
     setSubmitting(true);
     const result = await changePassword({ currentPassword, newPassword });
@@ -29,10 +31,11 @@ export default function AdminSettingsPage() {
 
     if (!result.ok) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
 
-    setSuccess(true);
+    toast.success("Contraseña actualizada.");
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
@@ -80,7 +83,6 @@ export default function AdminSettingsPage() {
         </div>
 
         <FieldError message={error ?? undefined} />
-        {success && <p className="text-sm text-green-600">Contraseña actualizada.</p>}
 
         <Button type="submit" disabled={submitting}>
           {submitting ? "Guardando..." : "Guardar cambios"}
