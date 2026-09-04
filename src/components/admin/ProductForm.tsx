@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select, Label, FieldError } from "@/components/ui/Field";
+import { confirmToast } from "@/lib/confirm-toast";
 import { ImageUploader } from "./ImageUploader";
 import { SIZES, type Size } from "@/types";
 import { createProduct, updateProduct, createColorVariant } from "@/server/actions/products";
@@ -69,6 +71,8 @@ export function ProductForm({
       return;
     }
 
+    if (isEditing && !(await confirmToast("¿Guardar los cambios de este producto?"))) return;
+
     const input = {
       name,
       description,
@@ -90,9 +94,11 @@ export function ProductForm({
 
     if (!result.ok) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
 
+    toast.success(isEditing ? "Producto actualizado." : "Producto creado.");
     router.push("/admin/productos");
     router.refresh();
   }
