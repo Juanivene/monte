@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { OrderStatusSelect } from "@/components/admin/OrderStatusSelect";
+import { PaymentMethodBadge } from "@/components/admin/PaymentMethodBadge";
 
 export default async function AdminOrderDetailPage({
   params,
@@ -36,6 +37,17 @@ export default async function AdminOrderDetailPage({
             <p>{order.buyerName}</p>
             <p>{order.buyerEmail}</p>
             <p>{order.buyerPhone}</p>
+          </div>
+        </div>
+        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+          <h2 className="text-sm font-medium text-neutral-900">Pago</h2>
+          <div className="mt-2 flex items-center gap-2">
+            <PaymentMethodBadge method={order.paymentMethod} />
+            {order.paidAt && (
+              <span className="text-xs text-neutral-500">
+                Pagado el {order.paidAt.toLocaleString("es-AR")}
+              </span>
+            )}
           </div>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4">

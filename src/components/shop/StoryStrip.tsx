@@ -15,7 +15,7 @@ export function StoryStrip() {
           </h2>
           <div className="text-ink-soft mt-6 space-y-4 text-[0.95rem] leading-relaxed">
             <p>
-              Monte nació entre las montañas de nuestros valles tcucumanos y terminó de tomar forma en
+              Monte nació entre las montañas de nuestros valles Tucumanos y terminó de tomar forma en
               la costa. De ahí salen los colores:  el verde del monte, el azul
               del agua y la arena.
             </p>
