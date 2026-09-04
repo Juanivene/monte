@@ -72,8 +72,14 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
   
             {/* Nav escritorio */}
             <nav className="hidden items-center gap-8 lg:flex">
+              {/*
+                #catalogo: sin el hash, el Link navega a "/" y Next scrollea
+                al top de la página (el Hero) en vez de quedarse en la
+                sección de productos, que es donde tiene sentido aterrizar
+                al elegir una categoría.
+              */}
               <Link
-                href="/"
+                href="/#catalogo"
                 data-active={pathname === "/" && !activeCategory}
                 className="link-underline text-ink-soft hover:text-ink text-[0.8rem] font-medium tracking-wide transition-colors"
               >
@@ -82,7 +88,7 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
               {categories.map((category) => (
                 <Link
                   key={category.slug}
-                  href={`/?categoria=${category.slug}`}
+                  href={`/?categoria=${category.slug}#catalogo`}
                   data-active={activeCategory === category.slug}
                   className="link-underline text-ink-soft hover:text-ink text-[0.8rem] font-medium tracking-wide transition-colors"
                 >
@@ -141,9 +147,9 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
       >
         <nav className="container-page flex flex-col gap-1 pb-16 pt-28">
           {[
-            { href: "/", label: "Todo" },
+            { href: "/#catalogo", label: "Todo" },
             ...categories.map((category) => ({
-              href: `/?categoria=${category.slug}`,
+              href: `/?categoria=${category.slug}#catalogo`,
               label: category.name,
             })),
             { href: "/#lookbook", label: "Lookbook" },
@@ -210,14 +216,17 @@ function CartLink({ itemCount }: { itemCount: number }) {
         <path d="M9 7V5.5a3 3 0 0 1 6 0V7" />
       </svg>
       <span className="eyebrow hidden sm:inline">Carrito</span>
-      <span
-        className={`bg-ink text-bone flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[0.6rem] font-semibold tabular-nums transition-transform duration-300 ${
-          itemCount > 0 ? "scale-100" : "scale-0"
-        }`}
-        aria-hidden={itemCount === 0}
-      >
-        {itemCount}
-      </span>
+      {/*
+        Renderizado condicional, no solo escalado a 0: con scale-0 el span
+        seguía ocupando su ancho + el gap del flex aunque fuera invisible,
+        lo que corría el ícono del centro del botón y lo hacía más ancho de
+        lo necesario en mobile (sin el texto "Carrito" al lado).
+      */}
+      {itemCount > 0 && (
+        <span className="bg-ink text-bone animate-pop flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[0.6rem] font-semibold tabular-nums">
+          {itemCount}
+        </span>
+      )}
     </Link>
   );
 }

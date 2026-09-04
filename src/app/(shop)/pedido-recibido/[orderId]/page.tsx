@@ -26,19 +26,22 @@ export default async function OrderReceivedPage({
   if (!order) notFound();
 
   const reference = order.id.slice(-8).toUpperCase();
+  const isPaidByPaypal = order.paymentMethod === "PAYPAL";
 
-  const whatsappUrl = buildOrderWhatsAppLink({
-    orderId: order.id,
-    buyerName: order.buyerName,
-    items: order.items.map((item) => ({
-      productName: item.productName,
-      colorName: null,
-      size: item.size,
-      quantity: item.quantity,
-      unitPrice: Number(item.unitPrice),
-    })),
-    total: Number(order.total),
-  });
+  const whatsappUrl = isPaidByPaypal
+    ? null
+    : buildOrderWhatsAppLink({
+        orderId: order.id,
+        buyerName: order.buyerName,
+        items: order.items.map((item) => ({
+          productName: item.productName,
+          colorName: null,
+          size: item.size,
+          quantity: item.quantity,
+          unitPrice: Number(item.unitPrice),
+        })),
+        total: Number(order.total),
+      });
 
   return (
     <div className="container-page max-w-2xl py-16 sm:py-24">
@@ -59,12 +62,13 @@ export default async function OrderReceivedPage({
         <p className="eyebrow text-ink-muted mt-6">Pedido #{reference}</p>
         <h1 className="headline mt-4 text-4xl sm:text-5xl">¡Gracias, {order.buyerName}!</h1>
         <p className="text-ink-soft mx-auto mt-4 max-w-md text-sm leading-relaxed">
-          Ya tenemos tu pedido reservado y te mandamos un mail con el resumen. Ahora solo falta
-          coordinar el pago y el envío.
+          {isPaidByPaypal
+            ? "Tu pago fue confirmado y te mandamos un mail con el resumen. Ya arrancamos a preparar tu pedido."
+            : "Ya tenemos tu pedido reservado y te mandamos un mail con el resumen. Ahora solo falta coordinar el pago y el envío."}
         </p>
       </div>
 
-      <WhatsAppRedirect whatsappUrl={whatsappUrl} />
+      {whatsappUrl && <WhatsAppRedirect whatsappUrl={whatsappUrl} />}
 
       <div className="border-ink/12 mt-12 border">
         <p className="eyebrow text-ink-muted border-ink/12 border-b px-5 py-3">Tu pedido</p>

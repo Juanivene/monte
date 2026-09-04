@@ -26,7 +26,7 @@ export function Footer({
           <p className="headline mx-auto mt-5 max-w-3xl text-[10vw] leading-[0.92] sm:text-6xl lg:text-7xl">
             Tiradas cortas,
             <br />
-            hechas para usarse
+            hechas para largo usos
           </p>
         </div>
       </div>
@@ -62,7 +62,9 @@ export function Footer({
           <li className="text-paper/55 text-sm">
             Cambios dentro de los 30 días
           </li>
-          <li className="text-paper/55 text-sm">Pago coordinado por WhatsApp</li>
+          <li className="text-paper/55 text-sm">
+            Pago coordinado por WhatsApp
+          </li>
         </FooterColumn>
 
         <FooterColumn title="Seguinos">

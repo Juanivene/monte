@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
+import { PaymentMethodBadge } from "@/components/admin/PaymentMethodBadge";
 import type { OrderStatus } from "@prisma/client";
 
 const STATUSES: OrderStatus[] = ["PENDIENTE", "CONFIRMADO", "ENVIADO", "ENTREGADO", "CANCELADO"];
@@ -59,6 +60,7 @@ export default async function AdminOrdersPage({
                 <th className="px-4 py-3">Pedido</th>
                 <th className="px-4 py-3">Comprador</th>
                 <th className="px-4 py-3">Total</th>
+                <th className="px-4 py-3">Pago</th>
                 <th className="px-4 py-3">Estado</th>
                 <th className="px-4 py-3">Fecha</th>
               </tr>
@@ -76,6 +78,9 @@ export default async function AdminOrdersPage({
                   </td>
                   <td className="px-4 py-3">{order.buyerName}</td>
                   <td className="px-4 py-3">{formatPrice(order.total)}</td>
+                  <td className="px-4 py-3">
+                    <PaymentMethodBadge method={order.paymentMethod} />
+                  </td>
                   <td className="px-4 py-3">
                     <OrderStatusBadge status={order.status} />
                   </td>
