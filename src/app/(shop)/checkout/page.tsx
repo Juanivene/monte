@@ -9,9 +9,12 @@ import { formatPrice } from "@/lib/money";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Label, FieldError } from "@/components/ui/Field";
 import { EmptyState } from "@/components/ui/EmptyState";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- CheckoutInput se usa en el bloque comentado de "PAGO CON TARJETA"
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
 import { submitCheckout } from "@/server/actions/checkout";
-import { PaypalCheckoutButton } from "@/components/shop/PaypalCheckoutButton";
+// Pago con tarjeta (PayPal) deshabilitado temporalmente. Para reactivar, descomentar
+// este import y todos los bloques marcados con "PAGO CON TARJETA" en este archivo.
+// import { PaypalCheckoutButton } from "@/components/shop/PaypalCheckoutButton";
 
 const buyerFieldsSchema = checkoutSchema.omit({ items: true });
 
@@ -49,33 +52,37 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodOption>("transferencia");
-  const [validatedBuyerData, setValidatedBuyerData] = useState<Omit<
-    CheckoutInput,
-    "items"
-  > | null>(null);
+  // PAGO CON TARJETA (deshabilitado temporalmente) -- estado usado para validar los
+  // datos del comprador antes de mostrar el botón de PayPal.
+  // const [validatedBuyerData, setValidatedBuyerData] = useState<Omit<
+  //   CheckoutInput,
+  //   "items"
+  // > | null>(null);
 
   function handleChange(field: keyof FormState) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
-      setValidatedBuyerData(null);
+      // setValidatedBuyerData(null); // PAGO CON TARJETA (deshabilitado temporalmente)
     };
   }
 
-  function handleContinueToPayment() {
-    setFormError(null);
-    const parsed = buyerFieldsSchema.safeParse(form);
-    if (!parsed.success) {
-      const fieldErrors: Partial<Record<keyof FormState, string>> = {};
-      for (const issue of parsed.error.issues) {
-        const key = issue.path[0] as keyof FormState;
-        if (!fieldErrors[key]) fieldErrors[key] = issue.message;
-      }
-      setErrors(fieldErrors);
-      return;
-    }
-    setErrors({});
-    setValidatedBuyerData(parsed.data);
-  }
+  // PAGO CON TARJETA (deshabilitado temporalmente) -- validaba los datos del comprador
+  // antes de habilitar el botón de PayPal.
+  // function handleContinueToPayment() {
+  //   setFormError(null);
+  //   const parsed = buyerFieldsSchema.safeParse(form);
+  //   if (!parsed.success) {
+  //     const fieldErrors: Partial<Record<keyof FormState, string>> = {};
+  //     for (const issue of parsed.error.issues) {
+  //       const key = issue.path[0] as keyof FormState;
+  //       if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+  //     }
+  //     setErrors(fieldErrors);
+  //     return;
+  //   }
+  //   setErrors({});
+  //   setValidatedBuyerData(parsed.data);
+  // }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -259,7 +266,8 @@ export default function CheckoutPage() {
               {(
                 [
                   { value: "transferencia", label: "Transferencia" },
-                  { value: "tarjeta", label: "Tarjeta" },
+                  // PAGO CON TARJETA (deshabilitado temporalmente)
+                  // { value: "tarjeta", label: "Tarjeta" },
                 ] as const
               ).map((option) => {
                 const selected = paymentMethod === option.value;
@@ -293,12 +301,16 @@ export default function CheckoutPage() {
             </p>
           )}
 
+          <div className="lg:hidden">
+            <Button type="submit" size="lg" disabled={submitting} className="w-full">
+              {submitting ? "Enviando…" : "Confirmar pedido"}
+            </Button>
+          </div>
+          {/* PAGO CON TARJETA (deshabilitado temporalmente) -- descomentar junto con el
+              resto de los bloques marcados "PAGO CON TARJETA" para reactivar el pago con
+              PayPal, y volver a envolver el bloque de arriba en el ternario original:
           {paymentMethod === "transferencia" ? (
-            <div className="lg:hidden">
-              <Button type="submit" size="lg" disabled={submitting} className="w-full">
-                {submitting ? "Enviando…" : "Confirmar pedido"}
-              </Button>
-            </div>
+            ...bloque de arriba...
           ) : (
             <div className="lg:hidden">
               {validatedBuyerData ? (
@@ -329,6 +341,7 @@ export default function CheckoutPage() {
               )}
             </div>
           )}
+          */}
         </form>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
@@ -368,16 +381,20 @@ export default function CheckoutPage() {
             </div>
 
             <div className="mt-6 hidden lg:block">
+              <Button
+                type="submit"
+                form="checkout-form"
+                size="lg"
+                disabled={submitting}
+                className="w-full"
+              >
+                {submitting ? "Enviando…" : "Confirmar pedido"}
+              </Button>
+              {/* PAGO CON TARJETA (deshabilitado temporalmente) -- descomentar junto con el
+                  resto de los bloques marcados "PAGO CON TARJETA" para reactivar el pago con
+                  PayPal, y volver a envolver el botón de arriba en el ternario original:
               {paymentMethod === "transferencia" ? (
-                <Button
-                  type="submit"
-                  form="checkout-form"
-                  size="lg"
-                  disabled={submitting}
-                  className="w-full"
-                >
-                  {submitting ? "Enviando…" : "Confirmar pedido"}
-                </Button>
+                ...botón de arriba...
               ) : validatedBuyerData ? (
                 <PaypalCheckoutButton
                   buyerData={{
@@ -404,6 +421,7 @@ export default function CheckoutPage() {
                   Continuar al pago
                 </Button>
               )}
+              */}
             </div>
 
             <p className="text-ink-muted mt-4 text-[0.7rem] leading-relaxed">
