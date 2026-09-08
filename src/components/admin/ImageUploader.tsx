@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { upload } from "@vercel/blob/client";
 
 export function ImageUploader({
   images,
@@ -22,11 +21,30 @@ export function ImageUploader({
     try {
       const uploaded: string[] = [];
       for (const file of Array.from(files)) {
-        const blob = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/blob/upload",
+        const signRes = await fetch("/api/blob/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contentType: file.type, size: file.size }),
         });
-        uploaded.push(blob.url);
+        if (!signRes.ok) {
+          const { error } = (await signRes.json()) as { error?: string };
+          throw new Error(error ?? "Error subiendo la imagen");
+        }
+        const { uploadUrl, publicUrl } = (await signRes.json()) as {
+          uploadUrl: string;
+          publicUrl: string;
+        };
+
+        const putRes = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+        if (!putRes.ok) {
+          throw new Error("Error subiendo la imagen");
+        }
+
+        uploaded.push(publicUrl);
       }
       onChange([...images, ...uploaded]);
     } catch (err) {

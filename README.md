@@ -9,7 +9,7 @@ categorías y pedidos.
 
 - Next.js (App Router) + TypeScript + Tailwind CSS
 - Postgres en [Neon](https://neon.tech) + Prisma 7 (con el driver adapter de Neon)
-- Imágenes de producto en Vercel Blob
+- Imágenes de producto en Cloudflare R2
 - Emails transaccionales con Resend + react-email
 - Sesión de admin con cookie firmada (jose), sin dependencias de auth pesadas
 
@@ -26,7 +26,7 @@ npm install
 Copiá `.env.example` a `.env` y completá:
 
 - `DATABASE_URL`: connection string de un proyecto en [Neon](https://neon.tech) (con `?sslmode=require`).
-- `BLOB_READ_WRITE_TOKEN`: se genera al crear un Blob Store en Vercel (Storage → Blob).
+- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`: de un bucket de [Cloudflare R2](https://developers.cloudflare.com/r2/) con acceso público habilitado.
 - `RESEND_API_KEY` y `EMAIL_FROM`: de tu cuenta en [Resend](https://resend.com). `EMAIL_FROM` necesita un dominio verificado en Resend para producción.
 - `ADMIN_NOTIFICATION_EMAIL`: a qué email le llega el aviso de "nuevo pedido".
 - `SESSION_SECRET`: string random largo, por ejemplo `openssl rand -base64 32`.

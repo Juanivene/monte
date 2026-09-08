@@ -1,46 +1,94 @@
-MAIL
-- Resend está en modo sandbox: sin dominio verificado solo llegan mails a la cuenta vinculada.
-- Verificar un dominio propio en Resend (registros SPF, DKIM y DMARC en el DNS).
-- EMAIL_FROM debe salir de ese dominio (ej. pedidos@tudominio.com), no de uno de prueba.
-- El dominio de envío debería ser el dominio real del negocio del cliente, no uno mío.
-- La cuenta de Resend puede quedar mía, pero el dominio de envío tiene que ser del cliente.
+# Handover a cuentas del cliente — checklist en orden
 
-PAGO
-- La cuenta de PayPal Business tiene que ser del cliente, no mía, antes de pasar a PAYPAL_ENV=live.
-- Si el Client ID/Secret son de mi cuenta, el dinero real de las ventas me llega a mí (implicancias fiscales/impositivas para mí, no para el cliente).
-- PayPal exige verificación de identidad (KYC) de la cuenta business, tiene que estar a nombre del cliente.
-- Acción: que el cliente cree su propia cuenta Business en PayPal, genere su app en developer.paypal.com/dashboard, y yo solo cargo sus credenciales (NEXT_PUBLIC_PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET) como variables de entorno en producción.
+Estado: el proyecto ya está funcionando (Netlify + Cloudflare R2 + Neon), pero todo vive
+en cuentas personales del desarrollador. Este archivo es el orden en el que hay que ir
+pasando cada pieza a cuentas del cliente antes de considerar el proyecto "entregado".
 
-BASE DE DATOS (Neon) Y VERCEL BLOB
-- Van a tener datos reales de clientes (pedidos, emails, direcciones) = PII de terceros en una cuenta a mi nombre.
-- Riesgo: filtración de datos, reclamo de un comprador, o que el cliente quiera migrar/exportar en el futuro.
-- Recomendado: transferir el proyecto de Neon a una cuenta/organización del cliente, o crear la instancia de producción directamente en su cuenta.
-- Igual criterio para Vercel Blob (imágenes de productos).
+## Ya hecho
 
-DESPLIEGUE (Vercel)
-- El hosting en sí no maneja plata ni PII directamente, pero:
-  - La facturación por uso (bandwidth, funciones, etc.) me llega a mí si crece el tráfico.
-  - Ante un incidente (caída, filtración de logs, reporte de contenido/abuso) la cuenta responsable frente a Vercel es la mía.
-- Opción intermedia: crear un Vercel Team y agregar al cliente como miembro/owner con facturación a su tarjeta — yo sigo deployando y administrando, pero costo y responsabilidad quedan del lado del cliente.
-- Si no, transferir el proyecto directamente a una cuenta del cliente.
+- [x] Migrado el hosting de Vercel (Hobby, prohibía uso comercial) a Netlify (Free, permite
+      uso comercial). Deploy corriendo en Netlify, cuenta del desarrollador.
+- [x] Migradas las imágenes de producto de Vercel Blob a Cloudflare R2 (bucket
+      `monte-products`, cuenta del desarrollador). Código en
+      `src/lib/r2.ts` / `src/app/api/blob/upload/route.ts` / `ImageUploader.tsx`.
+- [x] Env vars cargadas en Netlify (mismas que en `.env` local, ver README).
 
-DOMINIO
-- Registrar siempre a nombre del cliente (con su email/tarjeta), aunque yo lo configure.
-- Es de lo más fácil de dejar mal (registrarlo a mi nombre "para no complicar" y después ser un dolor de cabeza transferirlo).
+## 1. Dominio
 
-REPO (GitHub)
-- Riesgo bajo: solo código, sin datos de producción ni plata.
-- Puede quedar en mi cuenta mientras yo mantenga el sitio.
-- Si en algún momento el cliente quiere independencia (cambiar de desarrollador), transferir el repo o darle acceso de colaborador.
+- [ ] Registrar el dominio a nombre del cliente (su email, su tarjeta). Elegir registrador
+      barato para el costo a largo plazo (ej. Cloudflare Registrar, precio de costo sin
+      markup) en vez del de Netlify (markup fuerte en la renovación).
+- [ ] Apuntar el DNS del dominio al sitio de Netlify (registro `A`/`CNAME` según indique
+      Netlify al agregar el dominio custom en Site configuration → Domain management).
 
-RESUMEN DE OWNERSHIP
-- PayPal Business: del cliente (obligatorio antes de ir a live)
-- Dominio: del cliente
-- Neon (DB): del cliente, o transferir antes de producción real
-- Vercel Blob: ídem, junto con la DB
-- Resend: cuenta puede quedar mía, pero dominio de envío del cliente
-- Vercel (hosting): ideal team del cliente con acceso mío; mínimo aceptable dejarlo mío pero avisando la exposición
-- GitHub: puede quedar en mi cuenta sin problema
+Bloquea el paso 5 (Resend necesita un dominio propio para verificar el remitente).
 
-PENDIENTE
-- Dejar por escrito con el cliente (aunque sea un mail o párrafo en el presupuesto/contrato) qué cuentas son de él, qué incluye el mantenimiento, y que no me hago responsable por el uso del negocio una vez entregado.
+## 2. PayPal Business (en paralelo, no depende de nada)
+
+- [ ] El cliente crea su propia cuenta PayPal Business y completa el KYC.
+- [ ] Con esa cuenta, entra a developer.paypal.com/dashboard → Apps & Credentials → tab
+      **Live** → Create App (tipo Merchant).
+- [ ] Pasa el Client ID / Secret (live) al desarrollador para cargarlos en Netlify:
+      `NEXT_PUBLIC_PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`.
+- [ ] Recién ahí, cambiar `PAYPAL_ENV=live` en Netlify y redeployar.
+
+## 3. Neon (base de datos)
+
+Hoy vive en un proyecto de Neon de la cuenta del desarrollador. Guarda PII real de
+compradores (nombre, email, teléfono, dirección de envío completa — ver `Order` en
+`prisma/schema.prisma`).
+
+- [ ] El cliente crea una organización en Neon.
+- [ ] Desde el proyecto actual: Integrations → desconectar cualquier integración (Vercel,
+      GitHub) antes de transferir.
+- [ ] Project → Settings → Transfer → elegir la organización del cliente.
+- [ ] El `DATABASE_URL` no cambia con la transferencia — no hace falta redeployar por esto.
+
+## 4. Cloudflare (R2 — imágenes de producto, y dominio si se compró ahí)
+
+- [ ] Si el dominio se registró en Cloudflare (paso 1), esa cuenta ya queda directamente a
+      nombre del cliente — no hay nada que transferir en ese caso.
+- [ ] Si R2 quedó en una cuenta de Cloudflare del desarrollador separada de la del dominio:
+      mover el bucket `monte-products` a la cuenta/organización del cliente (o recrear el
+      bucket ahí y correr de nuevo el script de migración de imágenes que ya se usó una vez
+      para pasar de Vercel Blob a R2, apuntando ahora al nuevo bucket).
+- [ ] Regenerar el API Token (Access Key ID / Secret) desde la cuenta del cliente y
+      actualizar `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_ACCOUNT_ID` en Netlify.
+
+## 5. Netlify (hosting)
+
+- [ ] El cliente crea (o se agrega a) una cuenta/team de Netlify con su propio método de
+      pago si en algún momento se necesita un plan pago.
+- [ ] Transferir el sitio: Site configuration → General → Transfer this site → elegir el
+      team destino. Vos podés seguir como miembro con acceso de deploy.
+- [ ] Revisar que las env vars viajen con la transferencia; si no, volver a cargarlas.
+
+## 6. Resend (emails transaccionales)
+
+Requiere el dominio del paso 1 ya registrado y con DNS accesible.
+
+- [ ] Agregar el subdominio de envío en Resend (Domains → Add Domain) y publicar los
+      registros SPF/DKIM que da el dashboard en el DNS del dominio del cliente.
+- [ ] Configurar DMARC empezando en `p=none`, subir a `quarantine`/`reject` con el tiempo.
+- [ ] Actualizar `EMAIL_FROM` en Netlify a una dirección del dominio propio (ej.
+      `pedidos@tudominio.com`), reemplazando la de prueba `onboarding@resend.dev`.
+- [ ] Reactivar el envío de emails: en `src/lib/send-order-emails.ts` el envío está
+      comentado/deshabilitado a propósito — descomentar el bloque cuando esto esté listo.
+- [ ] La cuenta de Resend en sí puede seguir siendo del desarrollador; lo que tiene que ser
+      del cliente es el dominio de envío.
+
+## 7. GitHub
+
+- [ ] Crear una GitHub Organization (no queda en la cuenta personal del desarrollador ni en
+      la del cliente individualmente, es una entidad propia).
+- [ ] Transferir el repo `monte` a esa organización.
+- [ ] Invitar al cliente como miembro/owner de la organización.
+- [ ] El desarrollador se queda como colaborador con permiso de deploy (push + conectar el
+      repo a Netlify), el resto de las cuentas (dominio, PayPal, Neon, Cloudflare, Netlify,
+      Resend) quedan íntegramente del cliente.
+
+## 8. Texto/acuerdo por escrito con el cliente
+
+- [ ] Redactar (mail o párrafo en el presupuesto) qué cuentas quedan de quién, qué incluye
+      el mantenimiento, y el deslinde de responsabilidad por el uso del negocio una vez
+      entregado. Se puede hacer en paralelo a todo lo anterior, no depende de nada técnico.
