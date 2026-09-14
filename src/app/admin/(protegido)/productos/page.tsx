@@ -1,18 +1,40 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { Button } from "@/components/ui/Button";
+import { ProductFilters } from "@/components/admin/ProductFilters";
 
-export default async function AdminProductsPage() {
-  const products = await prisma.product.findMany({
-    include: {
-      images: { orderBy: { order: "asc" }, take: 1 },
-      category: true,
-      variants: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; categoria?: string }>;
+}) {
+  const { q, categoria } = await searchParams;
+  const query = q?.trim();
+
+  // El filtrado se resuelve acá, en el where de la consulta: nunca se trae
+  // todo el catálogo al front para filtrarlo ahí.
+  const where: Prisma.ProductWhereInput = {
+    ...(query ? { name: { contains: query, mode: "insensitive" } } : {}),
+    ...(categoria ? { categoryId: categoria } : {}),
+  };
+
+  const [products, categories] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      include: {
+        images: { orderBy: { order: "asc" }, take: 1 },
+        category: true,
+        variants: true,
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.category.findMany({ orderBy: { name: "asc" } }),
+  ]);
+
+  const hasFilters = Boolean(query || categoria);
 
   return (
     <div>
@@ -23,8 +45,18 @@ export default async function AdminProductsPage() {
         </Link>
       </div>
 
+      <ProductFilters
+        categories={categories}
+        initialQuery={q ?? ""}
+        initialCategoryId={categoria ?? ""}
+      />
+
       {products.length === 0 ? (
-        <p className="mt-6 text-sm text-neutral-500">Todavía no cargaste productos.</p>
+        <p className="mt-6 text-sm text-neutral-500">
+          {hasFilters
+            ? "No hay productos que coincidan con ese filtro."
+            : "Todavía no cargaste productos."}
+        </p>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-xl border border-neutral-200 bg-white">
           <table className="w-full text-sm">

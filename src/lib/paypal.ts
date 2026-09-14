@@ -1,6 +1,15 @@
+//todo remover
+import { nanoid } from "nanoid";
+import { MOCK_MODE } from "./mock/config";
+
 /** Moneda única para el cobro por PayPal. Los precios en la DB ya están en USD;
  * cuando se agregue soporte de ARS, este es el único lugar a tocar para el cobro. */
 export const CHECKOUT_CURRENCY = "USD";
+
+// Modo mock: no se llama a la API de PayPal. Guardamos el total por orden acá
+// para que capturePaypalOrder pueda devolver el mismo monto, tal como haría
+// un pago real, sin depender de credenciales.
+const mockOrderTotals = new Map<string, number>();
 
 const PAYPAL_API_BASE =
   process.env.PAYPAL_ENV === "live"
@@ -34,6 +43,12 @@ async function getPaypalAccessToken(): Promise<string> {
 }
 
 export async function createPaypalOrder(total: number): Promise<string> {
+  if (MOCK_MODE) {
+    const id = `MOCK-${nanoid(12)}`;
+    mockOrderTotals.set(id, total);
+    return id;
+  }
+
   const accessToken = await getPaypalAccessToken();
   const res = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
     method: "POST",
@@ -44,7 +59,9 @@ export async function createPaypalOrder(total: number): Promise<string> {
     body: JSON.stringify({
       intent: "CAPTURE",
       purchase_units: [
-        { amount: { currency_code: CHECKOUT_CURRENCY, value: total.toFixed(2) } },
+        {
+          amount: { currency_code: CHECKOUT_CURRENCY, value: total.toFixed(2) },
+        },
       ],
     }),
   });
@@ -55,9 +72,21 @@ export async function createPaypalOrder(total: number): Promise<string> {
   return data.id;
 }
 
-export type PaypalCaptureResult = { status: string; capturedAmount: number | null };
+export type PaypalCaptureResult = {
+  status: string;
+  capturedAmount: number | null;
+};
 
-export async function capturePaypalOrder(paypalOrderId: string): Promise<PaypalCaptureResult> {
+export async function capturePaypalOrder(
+  paypalOrderId: string,
+): Promise<PaypalCaptureResult> {
+  if (MOCK_MODE) {
+    const total = mockOrderTotals.get(paypalOrderId);
+    mockOrderTotals.delete(paypalOrderId);
+    if (total === undefined) return { status: "FAILED", capturedAmount: null };
+    return { status: "COMPLETED", capturedAmount: total };
+  }
+
   const accessToken = await getPaypalAccessToken();
   const res = await fetch(
     `${PAYPAL_API_BASE}/v2/checkout/orders/${paypalOrderId}/capture`,
@@ -78,7 +107,8 @@ export async function capturePaypalOrder(paypalOrderId: string): Promise<PaypalC
       payments?: { captures?: Array<{ amount?: { value?: string } }> };
     }>;
   };
-  const capturedValue = data.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value;
+  const capturedValue =
+    data.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value;
   return {
     status: data.status,
     capturedAmount: capturedValue ? Number(capturedValue) : null,

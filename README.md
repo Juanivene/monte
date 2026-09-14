@@ -15,6 +15,17 @@ categorías y pedidos.
 
 ## Setup local
 
+### Modo mock (sin DB ni servicios externos)
+
+Para levantar el frontend y tocar código sin configurar Neon, Vercel Blob, Resend ni
+PayPal: en `.env`, poné `NEXT_PUBLIC_MOCK_MODE=true` (ver `.env.example`) y corré
+`npm run dev`. La app usa datos de prueba en memoria (categorías, productos con las
+fotos de `public/lookbook`, pedidos) y simula PayPal y la subida de imágenes — el
+resto del código (páginas, server actions, componentes) funciona exactamente igual
+que en modo real. Admin de prueba: `admin@mock.dev` / `mock1234`. Los datos viven
+solo en memoria del proceso de `next dev`, se reinician al reiniciar el server. Para
+volver a usar la DB real, poné `NEXT_PUBLIC_MOCK_MODE=false` (o borrá la variable).
+
 ### 1. Instalar dependencias
 
 ```bash

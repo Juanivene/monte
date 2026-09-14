@@ -3,6 +3,9 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
+//todo remover
+import { MOCK_MODE } from "@/lib/mock/config";
+import { mockPrisma } from "@/lib/mock/mock-prisma";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -22,8 +25,12 @@ function createPrismaClient() {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+// En modo mock no se toca Neon ni hace falta DATABASE_URL: ver src/lib/mock/.
+export const prisma: PrismaClient = MOCK_MODE
+  ? mockPrisma
+  : (globalForPrisma.prisma ?? createPrismaClient());
 
-if (process.env.NODE_ENV !== "production") {
+if (!MOCK_MODE && process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
+
