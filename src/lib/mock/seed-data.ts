@@ -226,6 +226,25 @@ function seedOrders() {
   );
 }
 
+const ANNOUNCEMENT_LEGENDS = [
+  "Hecho en Tucumán",
+  "Envíos a todo el país",
+  "Tiradas cortas y numeradas",
+  "Cambios dentro de los 30 días",
+  "Coordinamos pago y envío por WhatsApp",
+];
+
+const HERO_LEGENDS = ["Monte", "Miami", "First Drop 2026"];
+
+function seedLegends() {
+  ANNOUNCEMENT_LEGENDS.forEach((text, order) => {
+    seedInsert("legend", { group: "ANNOUNCEMENT", text, order });
+  });
+  HERO_LEGENDS.forEach((text, order) => {
+    seedInsert("legend", { group: "HERO", text, order });
+  });
+}
+
 export function ensureMockSeed() {
   if (!MOCK_MODE || globalForSeed.mockSeeded) return;
   globalForSeed.mockSeeded = true;
@@ -233,6 +252,7 @@ export function ensureMockSeed() {
   seedProducts();
   seedAdmin();
   seedOrders();
+  seedLegends();
 
    
   console.log(

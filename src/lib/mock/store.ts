@@ -20,7 +20,8 @@ export type ModelName =
   | "productVariant"
   | "productGroup"
   | "order"
-  | "orderItem";
+  | "orderItem"
+  | "legend";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Doc = Record<string, any>;
@@ -61,9 +62,10 @@ const RELATIONS: Record<ModelName, Record<string, RelationDef>> = {
     order: { kind: "belongsTo", foreignKey: "orderId", target: "order" },
     product: { kind: "belongsTo", foreignKey: "productId", target: "product" },
   },
+  legend: {},
 };
 
-const WITH_TIMESTAMPS = new Set<ModelName>(["admin", "category", "product", "order"]);
+const WITH_TIMESTAMPS = new Set<ModelName>(["admin", "category", "product", "order", "legend"]);
 
 export type Store = Record<ModelName, Doc[]>;
 
@@ -77,6 +79,7 @@ function emptyStore(): Store {
     productGroup: [],
     order: [],
     orderItem: [],
+    legend: [],
   };
 }
 
@@ -349,6 +352,7 @@ export function buildMockPrisma() {
     productGroup: createModelApi("productGroup"),
     order: createModelApi("order"),
     orderItem: createModelApi("orderItem"),
+    legend: createModelApi("legend"),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     $transaction: async (arg: any) => {
       if (Array.isArray(arg)) return Promise.all(arg);

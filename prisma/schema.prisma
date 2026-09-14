@@ -28,6 +28,13 @@ enum PaymentMethod {
   PAYPAL
 }
 
+/// Las dos cintas que se desplazan en la tienda: ANNOUNCEMENT es la barra
+/// arriba del header, HERO es la de abajo del banner principal del home.
+enum LegendGroup {
+  ANNOUNCEMENT
+  HERO
+}
+
 model Admin {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -140,4 +147,16 @@ model OrderItem {
 
   @@index([orderId])
   @@index([productId])
+}
+
+/// Texto editable de las cintas que se desplazan en la tienda (ver LegendGroup).
+model Legend {
+  id        String      @id @default(cuid())
+  group     LegendGroup
+  text      String
+  order     Int         @default(0)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([group])
 }

@@ -19,7 +19,7 @@ export default async function HomePage({
 }) {
   const { categoria } = await searchParams;
 
-  const [categories, products, totalActive] = await Promise.all([
+  const [categories, products, totalActive, heroLegends] = await Promise.all([
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.product.findMany({
       where: {
@@ -34,6 +34,7 @@ export default async function HomePage({
       orderBy: { createdAt: "desc" },
     }),
     prisma.product.count({ where: { isActive: true } }),
+    prisma.legend.findMany({ where: { group: "HERO" }, orderBy: { order: "asc" } }),
   ]);
 
   const activeCategory = categories.find((c) => c.slug === categoria);
@@ -43,14 +44,16 @@ export default async function HomePage({
     <>
       <Hero productCount={totalActive} />
 
-      <div className="bg-night text-paper py-5 sm:py-7">
-        <Marquee
-          items={["First Drop 2026", "Monte", "Miami"]}
-          separator="—"
-          speed="34s"
-          className="headline text-[13vw] leading-none sm:text-[7rem]"
-        />
-      </div>
+      {heroLegends.length > 0 && (
+        <div className="bg-night text-paper py-5 sm:py-7">
+          <Marquee
+            items={heroLegends.map((legend) => legend.text)}
+            separator="—"
+            speed="34s"
+            className="headline text-[13vw] leading-none sm:text-[7rem]"
+          />
+        </div>
+      )}
 
       <section
         id="catalogo"
