@@ -2,6 +2,10 @@ import "server-only";
 import { resend } from "./resend";
 import OrderConfirmationBuyer from "@/emails/OrderConfirmationBuyer";
 import NewOrderAdmin from "@/emails/NewOrderAdmin";
+import OrderStatusUpdate, {
+  STATUS_COPY,
+  type NotifiableOrderStatus,
+} from "@/emails/OrderStatusUpdate";
 import type { EmailOrderItem } from "@/emails/shared";
 
 type SendOrderEmailsParams = {
@@ -62,6 +66,37 @@ export async function sendOrderEmails(params: SendOrderEmailsParams) {
   for (const result of results) {
     if (result.status === "rejected") {
       console.error("Error enviando email de pedido:", result.reason);
+    } else if (result.value.error) {
+      console.error("Error enviando email de pedido:", result.value.error);
     }
+  }
+}
+
+export async function sendOrderStatusEmail(params: {
+  orderId: string;
+  buyerName: string;
+  buyerEmail: string;
+  status: string;
+}) {
+  if (!Object.hasOwn(STATUS_COPY, params.status)) return;
+  const status = params.status as NotifiableOrderStatus;
+  const orderShortId = params.orderId.slice(-8).toUpperCase();
+  const from = process.env.EMAIL_FROM;
+
+  if (!from) {
+    console.error("Falta EMAIL_FROM: no se envió el email de estado del pedido", orderShortId);
+    return;
+  }
+
+  try {
+    const { error } = await resend.emails.send({
+      from,
+      to: params.buyerEmail,
+      subject: `${STATUS_COPY[status].subject} #${orderShortId}`,
+      react: OrderStatusUpdate({ buyerName: params.buyerName, orderShortId, status }),
+    });
+    if (error) console.error("Error enviando email de estado del pedido:", error);
+  } catch (err) {
+    console.error("Error enviando email de estado del pedido:", err);
   }
 }
