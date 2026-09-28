@@ -6,13 +6,27 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { confirmToast } from "@/lib/confirm-toast";
 import { deleteProduct } from "@/server/actions/products";
+import { TrashIcon } from "./TrashIcon";
 
-export function DeleteProductButton({ productId }: { productId: string }) {
+/**
+ * `iconOnly`: versión compacta (tacho) para las filas de ProductsTable — se
+ * queda en la lista y solo la refresca, en vez de volver a /admin/productos.
+ */
+export function DeleteProductButton({
+  productId,
+  productName,
+  iconOnly = false,
+}: {
+  productId: string;
+  productName?: string;
+  iconOnly?: boolean;
+}) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
-    if (!(await confirmToast("¿Eliminar este producto? Esta acción no se puede deshacer."))) return;
+    const label = productName ? `"${productName}"` : "este producto";
+    if (!(await confirmToast(`¿Eliminar ${label}? Esta acción no se puede deshacer.`))) return;
     setDeleting(true);
     const result = await deleteProduct(productId);
     setDeleting(false);
@@ -23,8 +37,23 @@ export function DeleteProductButton({ productId }: { productId: string }) {
     }
 
     toast.success("Producto eliminado.");
-    router.push("/admin/productos");
+    if (!iconOnly) router.push("/admin/productos");
     router.refresh();
+  }
+
+  if (iconOnly) {
+    return (
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={deleting}
+        aria-label={productName ? `Eliminar ${productName}` : "Eliminar producto"}
+        title="Eliminar"
+        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+      >
+        <TrashIcon />
+      </button>
+    );
   }
 
   return (

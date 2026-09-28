@@ -37,7 +37,7 @@ npm install
 Copiá `.env.example` a `.env` y completá:
 
 - `DATABASE_URL`: connection string de un proyecto en [Neon](https://neon.tech) (con `?sslmode=require`).
-- `BLOB_READ_WRITE_TOKEN`: se genera al crear un Blob Store en Vercel (Storage → Blob).
+- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`: bucket de Cloudflare R2 para las imágenes. Las claves salen de R2 → Manage API Tokens (Object Read & Write sobre el bucket); la URL pública, de Settings → Public Development URL. El bucket necesita una CORS Policy que permita `PUT` desde el dominio del sitio.
 - `RESEND_API_KEY` y `EMAIL_FROM`: de tu cuenta en [Resend](https://resend.com). `EMAIL_FROM` necesita un dominio verificado en Resend para producción.
 - `ADMIN_NOTIFICATION_EMAIL`: a qué email le llega el aviso de "nuevo pedido".
 - `SESSION_SECRET`: string random largo, por ejemplo `openssl rand -base64 32`.
@@ -71,7 +71,7 @@ prisma/schema.prisma        modelo de datos
 prisma/seed.ts               crea el admin inicial
 src/app/(shop)/...           catálogo, producto, carrito, checkout, pedido recibido
 src/app/admin/...            login + panel protegido (productos, categorías, pedidos)
-src/app/api/blob/upload/     endpoint que autoriza la subida de imágenes a Vercel Blob
+src/app/api/upload/          endpoint que firma la subida de imágenes a Cloudflare R2
 src/server/actions/          server actions (checkout, productos, categorías, pedidos, auth)
 src/lib/                     prisma client, sesión, validaciones (zod), carrito, whatsapp, emails
 src/emails/                  templates de react-email

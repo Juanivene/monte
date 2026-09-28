@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { orderStatusSchema } from "@/lib/validations";
+import { canDeleteOrder } from "@/lib/order-rules";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -25,5 +26,28 @@ export async function updateOrderStatus(
   revalidatePath("/admin");
   revalidatePath("/admin/pedidos");
   revalidatePath(`/admin/pedidos/${orderId}`);
+  return { ok: true };
+}
+
+export async function deleteOrder(orderId: string): Promise<ActionResult> {
+  await requireAdmin();
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { status: true, paidAt: true },
+  });
+  if (!order) {
+    return { ok: false, error: "El pedido ya no existe." };
+  }
+
+  const deletable = canDeleteOrder(order);
+  if (!deletable.ok) {
+    return { ok: false, error: `No se puede eliminar: ${deletable.reason}` };
+  }
+
+  // OrderItem tiene onDelete: Cascade, se van con el pedido.
+  await prisma.order.delete({ where: { id: orderId } });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/pedidos");
   return { ok: true };
 }
