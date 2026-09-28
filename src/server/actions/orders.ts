@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { orderStatusSchema } from "@/lib/validations";
 import { canDeleteOrder } from "@/lib/order-rules";
+import { sendOrderStatusEmail } from "@/lib/send-order-emails";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -18,10 +19,28 @@ export async function updateOrderStatus(
     return { ok: false, error: "Estado inválido" };
   }
 
-  await prisma.order.update({
+  const previous = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { status: true },
+  });
+  if (!previous) {
+    return { ok: false, error: "El pedido ya no existe." };
+  }
+
+  const order = await prisma.order.update({
     where: { id: orderId },
     data: { status: parsed.data.status },
+    select: { id: true, buyerName: true, buyerEmail: true, status: true },
   });
+
+  if (previous.status !== order.status) {
+    await sendOrderStatusEmail({
+      orderId: order.id,
+      buyerName: order.buyerName,
+      buyerEmail: order.buyerEmail,
+      status: order.status,
+    });
+  }
 
   revalidatePath("/admin");
   revalidatePath("/admin/pedidos");
