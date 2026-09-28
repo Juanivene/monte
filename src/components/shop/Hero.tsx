@@ -13,7 +13,7 @@ export function Hero({ productCount }: { productCount: number }) {
           <Reveal>
             <p className="eyebrow text-ink-muted flex items-center gap-3">
               <span className="bg-accent inline-block h-px w-8" />
-              Colección 01 · Otoño Invierno
+              Colección 01 · 2026
             </p>
           </Reveal>
 
@@ -109,4 +109,3 @@ function Stat({ value, label }: { value: string; label: string }) {
     </div>
   );
 }
-

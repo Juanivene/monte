@@ -56,3 +56,12 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export const orderStatusSchema = z.object({
   status: z.enum(["PENDIENTE", "CONFIRMADO", "ENVIADO", "ENTREGADO", "CANCELADO"]),
 });
+
+export const legendGroupSchema = z.enum(["ANNOUNCEMENT", "HERO"]);
+
+export const legendSchema = z.object({
+  group: legendGroupSchema,
+  text: z.string().trim().min(1, "El texto no puede estar vacío").max(120),
+});
+
+export type LegendInput = z.infer<typeof legendSchema>;

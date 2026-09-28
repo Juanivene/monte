@@ -1,4 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
+//todo remover
+import { MOCK_MODE } from "./mock/config";
 
 export const SESSION_COOKIE_NAME = "session";
 export const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7; // 7 días
@@ -9,7 +11,9 @@ export type SessionPayload = {
 };
 
 function getSecretKey() {
-  const secret = process.env.SESSION_SECRET;
+  const secret =
+    process.env.SESSION_SECRET ??
+    (MOCK_MODE ? "mock-dev-session-secret-no-usar-en-produccion" : undefined);
   if (!secret) {
     throw new Error("Falta la variable de entorno SESSION_SECRET");
   }
@@ -30,7 +34,10 @@ export async function verifySessionToken(
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, getSecretKey());
-    if (typeof payload.adminId !== "string" || typeof payload.email !== "string") {
+    if (
+      typeof payload.adminId !== "string" ||
+      typeof payload.email !== "string"
+    ) {
       return null;
     }
     return { adminId: payload.adminId, email: payload.email };
@@ -38,3 +45,4 @@ export async function verifySessionToken(
     return null;
   }
 }
+
