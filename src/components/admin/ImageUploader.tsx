@@ -2,9 +2,28 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { upload } from "@vercel/blob/client";
 //todo remover
 import { MOCK_MODE } from "@/lib/mock/config";
+
+// Pide al server una URL firmada y sube el archivo directo a R2 desde el navegador.
+async function uploadToR2(file: File): Promise<string> {
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ contentType: file.type, size: file.size }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Error subiendo la imagen");
+
+  const put = await fetch(data.uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type },
+    body: file,
+  });
+  if (!put.ok) throw new Error("Error subiendo la imagen a R2");
+
+  return data.publicUrl;
+}
 
 export function ImageUploader({
   images,
@@ -25,14 +44,10 @@ export function ImageUploader({
       const uploaded: string[] = [];
       for (const file of Array.from(files)) {
         if (MOCK_MODE) {
-          // Sin Vercel Blob: preview local del archivo, nada viaja por red.
+          // Sin R2: preview local del archivo, nada viaja por red.
           uploaded.push(URL.createObjectURL(file));
         } else {
-          const blob = await upload(file.name, file, {
-            access: "public",
-            handleUploadUrl: "/api/blob/upload",
-          });
-          uploaded.push(blob.url);
+          uploaded.push(await uploadToR2(file));
         }
       }
       onChange([...images, ...uploaded]);

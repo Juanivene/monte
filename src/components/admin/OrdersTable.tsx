@@ -1,14 +1,32 @@
 import Link from "next/link";
 import type { Order } from "@prisma/client";
 import { formatPrice } from "@/lib/money";
+import { canDeleteOrder } from "@/lib/order-rules";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
 import { PaymentMethodBadge } from "@/components/admin/PaymentMethodBadge";
+import { ClickableRow } from "@/components/admin/ClickableRow";
+import { DeleteOrderButton } from "@/components/admin/DeleteOrderButton";
+
+function orderLabel(order: Order) {
+  return `#${order.id.slice(-8).toUpperCase()}`;
+}
+
+function OrderDeleteButton({ order }: { order: Order }) {
+  const deletable = canDeleteOrder(order);
+  return (
+    <DeleteOrderButton
+      orderId={order.id}
+      orderLabel={orderLabel(order)}
+      disabledReason={deletable.ok ? undefined : deletable.reason}
+    />
+  );
+}
 
 /**
  * Tabla de pedidos con dos layouts: tabla real desde `sm` hacia arriba, y
  * lista de tarjetas apiladas por debajo — muestran exactamente los mismos
  * datos, así en mobile no se pierde ninguna columna ni hace falta scrollear
- * horizontalmente para verlas.
+ * horizontalmente para verlas. Toda la fila/tarjeta lleva al detalle.
  */
 export function OrdersTable({
   orders,
@@ -29,17 +47,24 @@ export function OrdersTable({
               {showPayment && <th className="px-4 py-3">Pago</th>}
               <th className="px-4 py-3">Estado</th>
               <th className="px-4 py-3">Fecha</th>
+              <th className="px-4 py-3">
+                <span className="sr-only">Acciones</span>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-200">
             {orders.map((order) => (
-              <tr key={order.id} className="hover:bg-neutral-50">
+              <ClickableRow
+                key={order.id}
+                href={`/admin/pedidos/${order.id}`}
+                className="hover:bg-neutral-50"
+              >
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/pedidos/${order.id}`}
                     className="font-medium text-neutral-900 hover:underline"
                   >
-                    #{order.id.slice(-8).toUpperCase()}
+                    {orderLabel(order)}
                   </Link>
                 </td>
                 <td className="px-4 py-3">{order.buyerName}</td>
@@ -55,7 +80,10 @@ export function OrdersTable({
                 <td className="px-4 py-3 text-neutral-500">
                   {order.createdAt.toLocaleDateString("es-AR")}
                 </td>
-              </tr>
+                <td className="px-4 py-3 text-right">
+                  <OrderDeleteButton order={order} />
+                </td>
+              </ClickableRow>
             ))}
           </tbody>
         </table>
@@ -63,15 +91,13 @@ export function OrdersTable({
 
       <ul className="divide-y divide-neutral-200 sm:hidden">
         {orders.map((order) => (
-          <li key={order.id}>
+          <li key={order.id} className="flex items-center gap-2 pr-2 active:bg-neutral-50">
             <Link
               href={`/admin/pedidos/${order.id}`}
-              className="block px-4 py-3.5 active:bg-neutral-50"
+              className="block min-w-0 flex-1 py-3.5 pl-4"
             >
               <div className="flex items-start justify-between gap-3">
-                <span className="font-medium text-neutral-900">
-                  #{order.id.slice(-8).toUpperCase()}
-                </span>
+                <span className="font-medium text-neutral-900">{orderLabel(order)}</span>
                 <OrderStatusBadge status={order.status} />
               </div>
               <p className="mt-1 truncate text-sm text-neutral-600">{order.buyerName}</p>
@@ -85,6 +111,7 @@ export function OrdersTable({
                 {order.createdAt.toLocaleDateString("es-AR")}
               </p>
             </Link>
+            <OrderDeleteButton order={order} />
           </li>
         ))}
       </ul>

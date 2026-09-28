@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatPrice } from "@/lib/money";
+import { DeleteProductButton } from "./DeleteProductButton";
 
 export type ProductRow = {
   id: string;
@@ -71,12 +72,15 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
                     <StatusBadge isActive={p.isActive} />
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/admin/productos/${p.id}`}
-                      className="text-sm font-medium text-neutral-900 hover:underline"
-                    >
-                      Editar
-                    </Link>
+                    <div className="flex items-center justify-end gap-2">
+                      <Link
+                        href={`/admin/productos/${p.id}`}
+                        className="text-sm font-medium text-neutral-900 hover:underline"
+                      >
+                        Editar
+                      </Link>
+                      <DeleteProductButton productId={p.id} productName={p.name} iconOnly />
+                    </div>
                   </td>
                 </tr>
               );
@@ -115,6 +119,7 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
               >
                 Editar
               </Link>
+              <DeleteProductButton productId={p.id} productName={p.name} iconOnly />
             </li>
           );
         })}

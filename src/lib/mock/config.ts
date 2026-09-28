@@ -1,7 +1,7 @@
 /**
  * Modo mock: activa una base de datos en memoria (seedeada) y simula PayPal /
  * subida de imágenes, para poder correr `next dev` y tocar el frontend sin
- * DATABASE_URL, BLOB_READ_WRITE_TOKEN, RESEND_API_KEY ni credenciales de PayPal.
+ * DATABASE_URL, R2_*, RESEND_API_KEY ni credenciales de PayPal.
  *
  * NEXT_PUBLIC_* porque se lee tanto en server (páginas, server actions) como
  * en componentes "use client" (el botón de PayPal, el uploader de imágenes).

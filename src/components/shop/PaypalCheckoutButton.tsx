@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/Button";
 import { MOCK_MODE } from "@/lib/mock/config";
 
 const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? "";
+// Solo sandbox: PayPal decide si muestra el botón de tarjeta según el país del
+// comprador (por IP). Desde Argentina no aparece, así que para probarlo se
+// fuerza un país elegible (ej. "US"). En live dejarlo vacío.
+const buyerCountry = process.env.NEXT_PUBLIC_PAYPAL_BUYER_COUNTRY || undefined;
 
 export function PaypalCheckoutButton({
   buyerData,
@@ -65,7 +69,13 @@ export function PaypalCheckoutButton({
 
   return (
     <PayPalScriptProvider
-      options={{ clientId, currency: "USD", intent: "capture" }}
+      options={{
+        clientId,
+        currency: "USD",
+        intent: "capture",
+        enableFunding: "card",
+        buyerCountry,
+      }}
     >
       <PayPalButtons
         style={{ layout: "vertical", label: "pay" }}
