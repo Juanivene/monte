@@ -1,4 +1,10 @@
 import { formatPrice } from "./money";
+import { MOCK_MODE } from "./mock/config";
+
+//todo remover 
+function getWhatsAppNumber(): string | undefined {
+  return process.env.WHATSAPP_NUMBER ?? (MOCK_MODE ? "5491100000000" : undefined);
+}
 
 export type WhatsAppOrderItem = {
   productName: string;
@@ -14,7 +20,7 @@ export function buildOrderWhatsAppLink(params: {
   items: WhatsAppOrderItem[];
   total: number;
 }) {
-  const number = process.env.WHATSAPP_NUMBER;
+  const number = getWhatsAppNumber();
   if (!number) {
     throw new Error("Falta la variable de entorno WHATSAPP_NUMBER");
   }
@@ -44,7 +50,7 @@ export function buildOrderWhatsAppLink(params: {
  * simplemente no muestra el CTA en vez de romperse.
  */
 export function buildContactWhatsAppLink(message?: string): string | null {
-  const number = process.env.WHATSAPP_NUMBER;
+  const number = getWhatsAppNumber();
   if (!number) return null;
 
   const text = encodeURIComponent(

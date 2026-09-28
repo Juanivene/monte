@@ -3,6 +3,8 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { upload } from "@vercel/blob/client";
+//todo remover
+import { MOCK_MODE } from "@/lib/mock/config";
 
 export function ImageUploader({
   images,
@@ -22,11 +24,16 @@ export function ImageUploader({
     try {
       const uploaded: string[] = [];
       for (const file of Array.from(files)) {
-        const blob = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/blob/upload",
-        });
-        uploaded.push(blob.url);
+        if (MOCK_MODE) {
+          // Sin Vercel Blob: preview local del archivo, nada viaja por red.
+          uploaded.push(URL.createObjectURL(file));
+        } else {
+          const blob = await upload(file.name, file, {
+            access: "public",
+            handleUploadUrl: "/api/blob/upload",
+          });
+          uploaded.push(blob.url);
+        }
       }
       onChange([...images, ...uploaded]);
     } catch (err) {
@@ -57,7 +64,13 @@ export function ImageUploader({
             key={url}
             className="group relative h-24 w-24 overflow-hidden rounded-lg border border-neutral-200"
           >
-            <Image src={url} alt="" fill sizes="96px" className="object-cover" />
+            {url.startsWith("blob:") ? (
+              // el optimizador de next/image no acepta blob: URLs (preview local del modo mock)
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <Image src={url} alt="" fill sizes="96px" className="object-cover" />
+            )}
             <div className="absolute inset-x-0 bottom-0 flex justify-between bg-black/50 px-1 py-0.5 opacity-0 transition group-hover:opacity-100">
               <button
                 type="button"

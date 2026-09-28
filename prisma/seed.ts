@@ -31,6 +31,35 @@ async function main() {
   });
 
   console.log(`Admin listo: ${admin.email}`);
+
+  await seedDefaultLegends();
+}
+
+/** Solo carga leyendas por defecto la primera vez (si el grupo ya tiene alguna, no toca nada). */
+async function seedDefaultLegends() {
+  const announcementCount = await prisma.legend.count({ where: { group: "ANNOUNCEMENT" } });
+  if (announcementCount === 0) {
+    const texts = [
+      "Hecho en Tucumán",
+      "Envíos a todo el país",
+      "Tiradas cortas y numeradas",
+      "Cambios dentro de los 30 días",
+      "Coordinamos pago y envío por WhatsApp",
+    ];
+    await prisma.legend.createMany({
+      data: texts.map((text, order) => ({ group: "ANNOUNCEMENT" as const, text, order })),
+    });
+    console.log("Leyendas de la barra de anuncios cargadas.");
+  }
+
+  const heroCount = await prisma.legend.count({ where: { group: "HERO" } });
+  if (heroCount === 0) {
+    const texts = ["Monte", "Miami", "First Drop 2026"];
+    await prisma.legend.createMany({
+      data: texts.map((text, order) => ({ group: "HERO" as const, text, order })),
+    });
+    console.log("Leyendas del hero cargadas.");
+  }
 }
 
 main()

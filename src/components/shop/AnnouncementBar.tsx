@@ -1,22 +1,20 @@
+import { prisma } from "@/lib/prisma";
 import { Marquee } from "@/components/ui/Marquee";
 
-const messages = [
-  "Envíos a todo el país",
-  "Tiradas cortas y numeradas",
-  "Cambios dentro de los 30 días",
-  "Coordinamos pago y envío por WhatsApp",
-  "Hecho en Tucumán",
-];
+export async function AnnouncementBar() {
+  const legends = await prisma.legend.findMany({
+    where: { group: "ANNOUNCEMENT" },
+    orderBy: { order: "asc" },
+  });
+  if (legends.length === 0) return null;
 
-export function AnnouncementBar() {
   return (
     <div className="bg-night text-paper/80">
       <Marquee
-        items={messages}
+        items={legends.map((l) => l.text)}
         className="eyebrow py-2.5 text-[0.625rem]"
         speed="42s"
       />
     </div>
   );
 }
-
