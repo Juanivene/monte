@@ -1,6 +1,11 @@
+
 # Las NEXT_PUBLIC_* se incrustan a propósito en el bundle del cliente (son
 # públicas por diseño, ej. el Client ID de PayPal), así que el secrets scanning
 # de Netlify las marca como falso positivo. Los secretos reales (PAYPAL_CLIENT_SECRET,
 # DATABASE_URL, R2_*, RESEND_API_KEY, SESSION_SECRET) se siguen escaneando.
+#
+# El caché de Turbopack (.next/cache) guarda los valores de las env vars para
+# invalidar builds; no se publica ni llega al cliente, así que no se escanea.
 [build.environment]
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache/**,.next/cache/**"
   SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_PAYPAL_CLIENT_ID,NEXT_PUBLIC_SITE_URL,NEXT_PUBLIC_SITE_NAME,NEXT_PUBLIC_MOCK_MODE,NEXT_PUBLIC_PAYPAL_BUYER_COUNTRY"
