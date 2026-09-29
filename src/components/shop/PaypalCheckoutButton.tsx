@@ -33,10 +33,7 @@ export function PaypalCheckoutButton({
     return data.paypalOrderId as string;
   }
 
-  async function approveOrder(
-    paypalOrderId: string,
-    restart?: () => void,
-  ) {
+  async function approveOrder(paypalOrderId: string) {
     const res = await fetch("/api/paypal/capture-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -44,12 +41,9 @@ export function PaypalCheckoutButton({
     });
     const result = await res.json();
     if (!res.ok || !result.ok) {
-      // Tarjeta rechazada: PayPal permite reintentar la misma orden con otro medio.
-      if (result.declined && restart) {
-        onError(result.error);
-        restart();
-        return;
-      }
+      // Si la tarjeta fue rechazada no usamos actions.restart(): con los campos
+      // de tarjeta inline dispara el onError del SDK y abre un modal extra.
+      // El comprador reintenta con el botón, que crea una orden nueva.
       onError(result.error ?? "No se pudo confirmar el pago");
       return;
     }
@@ -89,9 +83,7 @@ export function PaypalCheckoutButton({
       <PayPalButtons
         style={{ layout: "vertical", label: "pay" }}
         createOrder={createOrder}
-        onApprove={async (data, actions) =>
-          approveOrder(data.orderID, actions.restart)
-        }
+        onApprove={async (data) => approveOrder(data.orderID)}
         onError={() => {
           onError("Ocurrió un error con PayPal. Probá de nuevo.");
         }}
