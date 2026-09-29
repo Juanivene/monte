@@ -91,25 +91,26 @@ export function OrdersTable({
 
       <ul className="divide-y divide-neutral-200 sm:hidden">
         {orders.map((order) => (
-          <li key={order.id} className="flex items-center gap-2 pr-2 active:bg-neutral-50">
+          <li key={order.id} className="flex items-center gap-1 pr-1.5 active:bg-neutral-50">
             <Link
               href={`/admin/pedidos/${order.id}`}
               className="block min-w-0 flex-1 py-3.5 pl-4"
             >
-              <div className="flex items-start justify-between gap-3">
-                <span className="font-medium text-neutral-900">{orderLabel(order)}</span>
-                <OrderStatusBadge status={order.status} />
-              </div>
-              <p className="mt-1 truncate text-sm text-neutral-600">{order.buyerName}</p>
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <span className="text-sm font-medium text-neutral-900">
+              <div className="flex items-center justify-between gap-3">
+                <span className="truncate font-medium text-neutral-900">{order.buyerName}</span>
+                <span className="shrink-0 font-semibold text-neutral-900 tabular-nums">
                   {formatPrice(order.total)}
                 </span>
+              </div>
+              <div className="mt-1 flex items-center gap-2 text-xs text-neutral-500">
+                <span className="font-mono">{orderLabel(order)}</span>
+                <span aria-hidden="true">·</span>
+                <span>{order.createdAt.toLocaleDateString("es-AR")}</span>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <OrderStatusBadge status={order.status} />
                 {showPayment && <PaymentMethodBadge method={order.paymentMethod} />}
               </div>
-              <p className="mt-1.5 text-xs text-neutral-500">
-                {order.createdAt.toLocaleDateString("es-AR")}
-              </p>
             </Link>
             <OrderDeleteButton order={order} />
           </li>

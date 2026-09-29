@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Select } from "@/components/ui/Field";
 import { confirmToast } from "@/lib/confirm-toast";
 import { updateOrderStatus } from "@/server/actions/orders";
+import { STATUS_LABELS } from "./OrderStatusBadge";
 
 const STATUSES = ["PENDIENTE", "CONFIRMADO", "ENVIADO", "ENTREGADO", "CANCELADO"];
 
@@ -17,7 +18,7 @@ export function OrderStatusSelect({ orderId, status }: { orderId: string; status
   async function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const next = e.target.value;
     if (next === current) return;
-    if (!(await confirmToast(`¿Cambiar el estado del pedido a "${next}"?`))) {
+    if (!(await confirmToast(`¿Cambiar el estado del pedido a "${STATUS_LABELS[next] ?? next}"?`))) {
       e.target.value = current;
       return;
     }
@@ -38,15 +39,21 @@ export function OrderStatusSelect({ orderId, status }: { orderId: string; status
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Select value={current} onChange={handleChange} disabled={saving} className="w-auto">
+    <div className="flex items-center gap-3">
+      <Select
+        value={current}
+        onChange={handleChange}
+        disabled={saving}
+        aria-label="Estado del pedido"
+        className="sm:w-auto"
+      >
         {STATUSES.map((s) => (
           <option key={s} value={s}>
-            {s}
+            {STATUS_LABELS[s] ?? s}
           </option>
         ))}
       </Select>
-      {saving && <span className="text-xs text-neutral-400">Guardando...</span>}
+      {saving && <span className="shrink-0 text-xs text-neutral-400">Guardando...</span>}
     </div>
   );
 }

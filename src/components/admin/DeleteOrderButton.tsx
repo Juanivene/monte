@@ -63,8 +63,8 @@ export function DeleteOrderButton({
         }
         className={
           disabled
-            ? "inline-flex h-8 w-8 shrink-0 cursor-not-allowed items-center justify-center rounded-md text-neutral-300"
-            : "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-500 hover:bg-red-50 hover:text-red-600"
+            ? "inline-flex h-10 w-10 shrink-0 cursor-not-allowed items-center justify-center rounded-lg text-neutral-300"
+            : "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-neutral-500 hover:bg-red-50 active:bg-red-50 hover:text-red-600"
         }
       >
         <TrashIcon />

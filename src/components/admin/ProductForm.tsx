@@ -103,10 +103,17 @@ export function ProductForm({
     router.refresh();
   }
 
+  function stepStock(size: Size, delta: number) {
+    setVariants((prev) => ({ ...prev, [size]: Math.max(0, (prev[size] ?? 0) + delta) }));
+  }
+
+  const sectionClass = "rounded-xl border border-neutral-200 bg-white p-4 sm:p-5";
+  const sectionTitleClass = "mb-4 text-sm font-semibold text-neutral-900";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       {!isEditing && otherProducts.length > 0 && (
-        <section className="rounded-xl bg-neutral-50 p-4">
+        <section className="rounded-xl bg-neutral-100 p-4">
           <Label htmlFor="baseProduct">¿Es un color de un producto que ya existe? (opcional)</Label>
           <Select
             id="baseProduct"
@@ -127,103 +134,156 @@ export function ProductForm({
         </section>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <Label htmlFor="name" required>
-            Nombre
-          </Label>
-          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-        </div>
-        <div>
-          <Label htmlFor="price" required>
-            Precio (USD)
-          </Label>
-          <Input
-            id="price"
-            type="number"
-            min="0"
-            step="0.01"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="colorName">Color (opcional)</Label>
-          <Input
-            id="colorName"
-            value={colorName}
-            onChange={(e) => setColorName(e.target.value)}
-            placeholder="Ej: Negro"
-          />
-        </div>
-        <div>
-          <Label htmlFor="category">Categoría</Label>
-          <Select id="category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-            <option value="">Sin categoría</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="flex items-center gap-2 pt-6">
-          <input
-            id="isActive"
-            type="checkbox"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-            className="h-4 w-4 rounded border-neutral-300"
-          />
-          <Label htmlFor="isActive">Visible en la tienda</Label>
-        </div>
-        <div className="sm:col-span-2">
-          <Label htmlFor="description" required>
-            Descripción
-          </Label>
-          <Textarea
-            id="description"
-            rows={5}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
+      <section className={sectionClass}>
+        <h2 className={sectionTitleClass}>Datos</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Label htmlFor="name" required>
+              Nombre
+            </Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoCapitalize="sentences"
+              enterKeyHint="next"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:col-span-2 sm:gap-4">
+            <div>
+              <Label htmlFor="price" required>
+                Precio (USD)
+              </Label>
+              <Input
+                id="price"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                enterKeyHint="next"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="colorName">Color</Label>
+              <Input
+                id="colorName"
+                value={colorName}
+                onChange={(e) => setColorName(e.target.value)}
+                placeholder="Opcional"
+                autoCapitalize="sentences"
+                enterKeyHint="next"
+              />
+            </div>
+          </div>
+          <div className="sm:col-span-2">
+            <Label htmlFor="category">Categoría</Label>
+            <Select id="category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+              <option value="">Sin categoría</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="sm:col-span-2">
+            <Label htmlFor="description" required>
+              Descripción
+            </Label>
+            <Textarea
+              id="description"
+              rows={5}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              autoCapitalize="sentences"
+              required
+            />
+          </div>
+          {/* Toda la fila es tocable, no solo el checkbox de 16px. */}
+          <label
+            htmlFor="isActive"
+            className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-neutral-200 px-4 py-3 active:bg-neutral-50 sm:col-span-2"
+          >
+            <span>
+              <span className="block text-sm font-medium text-neutral-900">Visible en la tienda</span>
+              <span className="block text-xs text-neutral-500">
+                {isActive ? "Los clientes lo ven y lo pueden comprar." : "Oculto: solo lo ves vos."}
+              </span>
+            </span>
+            <input
+              id="isActive"
+              type="checkbox"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              className="h-5 w-5 shrink-0 rounded border-neutral-300 accent-neutral-900"
+            />
+          </label>
         </div>
       </section>
 
-      <section>
-        <Label>Imágenes</Label>
+      <section className={sectionClass}>
+        <h2 className={sectionTitleClass}>Imágenes</h2>
         <ImageUploader images={images} onChange={setImages} />
       </section>
 
-      <section>
-        <Label>Stock por talle</Label>
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+      <section className={sectionClass}>
+        <h2 className={sectionTitleClass}>Stock por talle</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {SIZES.map((size) => (
             <div key={size}>
               <label htmlFor={`stock-${size}`} className="mb-1 block text-xs font-medium text-neutral-600">
                 {size}
               </label>
-              <Input
-                id={`stock-${size}`}
-                type="number"
-                min="0"
-                value={variants[size]}
-                onChange={(e) =>
-                  setVariants((prev) => ({ ...prev, [size]: Number(e.target.value) || 0 }))
-                }
-              />
+              <div className="flex items-stretch">
+                <button
+                  type="button"
+                  onClick={() => stepStock(size, -1)}
+                  disabled={variants[size] <= 0}
+                  aria-label={`Restar uno al talle ${size}`}
+                  className="w-10 shrink-0 rounded-l-xs border border-r-0 border-ink/15 text-lg text-neutral-600 active:bg-neutral-100 disabled:opacity-30"
+                >
+                  −
+                </button>
+                <Input
+                  id={`stock-${size}`}
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={variants[size]}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) =>
+                    setVariants((prev) => ({ ...prev, [size]: Number(e.target.value) || 0 }))
+                  }
+                  className="min-w-0 text-center tabular-nums"
+                />
+                <button
+                  type="button"
+                  onClick={() => stepStock(size, 1)}
+                  aria-label={`Sumar uno al talle ${size}`}
+                  className="w-10 shrink-0 rounded-r-xs border border-l-0 border-ink/15 text-lg text-neutral-600 active:bg-neutral-100"
+                >
+                  +
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      <FieldError message={error ?? undefined} />
-
-      <Button type="submit" disabled={submitting}>
-        {submitting ? "Guardando..." : isEditing ? "Guardar cambios" : "Crear producto"}
-      </Button>
+      {/*
+        En teléfono el botón de guardar queda pegado abajo (sobre la barra de
+        pestañas) mientras se recorre el formulario, así no hay que bajar hasta el final.
+      */}
+      <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-20 -mx-4 border-t border-neutral-200 bg-neutral-50/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <FieldError message={error ?? undefined} />
+        <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
+          {submitting ? "Guardando..." : isEditing ? "Guardar cambios" : "Crear producto"}
+        </Button>
+      </div>
     </form>
   );
 }

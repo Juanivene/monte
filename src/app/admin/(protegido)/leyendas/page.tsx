@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { LegendManager } from "@/components/admin/LegendManager";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export default async function AdminLegendsPage() {
   const [announcement, hero] = await Promise.all([
@@ -9,13 +10,12 @@ export default async function AdminLegendsPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-xl font-semibold text-neutral-900">Leyendas</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Los textos de las dos cintas que se desplazan en la tienda. Los cambios se ven al
-        instante, sin necesidad de deploy.
-      </p>
+      <PageHeader
+        title="Leyendas"
+        subtitle="Los textos de las dos cintas que se desplazan en la tienda. Los cambios se ven al instante, sin necesidad de deploy."
+      />
 
-      <div className="mt-6 space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <LegendManager
           group="ANNOUNCEMENT"
           title="Barra de anuncios (arriba del header)"
