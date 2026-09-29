@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
-import type { Shot } from "@/lib/lookbook";
+import type { ImageField, ResolvedImage } from "@/lib/site-content/fields";
+import { EditableImage } from "@/components/site-editor/EditableImage";
+import { useSiteEditor } from "@/components/site-editor/context";
 
 /**
  * Tira horizontal de fotos. `overflow-x-auto` solo. Anda solo con touch
@@ -12,7 +13,12 @@ import type { Shot } from "@/lib/lookbook";
  * componente le suma tres formas de moverla con mouse: arrastrar,
  * flechas, y traducir la rueda vertical a desplazamiento horizontal.
  */
-export function LookbookStrip({ shots }: { shots: Shot[] }) {
+export function LookbookStrip({
+  items,
+}: {
+  items: { field: ImageField; image: ResolvedImage }[];
+}) {
+  const editor = useSiteEditor();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, scrollLeft: 0 });
@@ -75,8 +81,9 @@ export function LookbookStrip({ shots }: { shots: Shot[] }) {
 
   function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
     // Solo mouse: en touch, el scroll nativo ya funciona y arrastrar
-    // encima rompería el gesto (scrollLeft se movería el doble).
-    if (event.pointerType !== "mouse") return;
+    // encima rompería el gesto (scrollLeft se movería el doble). En el editor
+    // tampoco: el arrastre se comería los clicks en "Cambiar foto".
+    if (event.pointerType !== "mouse" || editor) return;
     const el = scrollerRef.current;
     if (!el) return;
 
@@ -115,24 +122,26 @@ export function LookbookStrip({ shots }: { shots: Shot[] }) {
         tabIndex={0}
         className="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [touch-action:pan-x] active:cursor-grabbing sm:cursor-grab sm:gap-4 sm:px-8 xl:px-10"
       >
-        {shots.map((shot, i) => (
-          <figure
-            key={shot.src.src}
-            className="bg-bone-dark relative h-[58vh] max-h-[600px] min-h-[340px] shrink-0 snap-start overflow-hidden"
-            style={{ aspectRatio: `${shot.src.width} / ${shot.src.height}` }}
-          >
-            <Image
-              src={shot.src}
-              alt={shot.alt}
-              placeholder="blur"
-              fill
-              draggable={false}
-              loading={i < 2 ? "eager" : "lazy"}
-              sizes="(min-width: 640px) 45vw, 80vw"
-              className="pointer-events-none object-cover transition-transform duration-1000 ease-out sm:pointer-events-auto sm:hover:scale-105"
-            />
-          </figure>
-        ))}
+        {items.map(({ field, image }, i) => {
+          // En el editor, las medidas de la foto en vivo (puede haber cambiado).
+          const { width, height } = editor?.content.image[field] ?? image;
+          return (
+            <figure
+              key={field}
+              className="bg-bone-dark relative h-[58vh] max-h-[600px] min-h-[340px] shrink-0 snap-start overflow-hidden"
+              style={{ aspectRatio: `${width} / ${height}` }}
+            >
+              <EditableImage
+                field={field}
+                image={image}
+                draggable={false}
+                loading={i < 2 ? "eager" : "lazy"}
+                sizes="(min-width: 640px) 45vw, 80vw"
+                className="pointer-events-none object-cover transition-transform duration-1000 ease-out sm:pointer-events-auto sm:hover:scale-105"
+              />
+            </figure>
+          );
+        })}
         <div aria-hidden="true" className="w-1 shrink-0" />
       </div>
 

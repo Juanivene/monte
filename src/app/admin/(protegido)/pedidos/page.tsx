@@ -2,6 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { OrdersTable } from "@/components/admin/OrdersTable";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { Pagination } from "@/components/admin/Pagination";
+import { pageRange, parsePage, redirectIfPageOutOfRange } from "@/lib/pagination";
 import { STATUS_LABELS } from "@/components/admin/OrderStatusBadge";
 import type { OrderStatus } from "@prisma/client";
 
@@ -18,15 +20,24 @@ function chipClass(active: boolean) {
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ estado?: string }>;
+  searchParams: Promise<{ estado?: string; pagina?: string }>;
 }) {
-  const { estado } = await searchParams;
-  const status = STATUSES.find((s) => s === estado);
+  const params = await searchParams;
+  const status = STATUSES.find((s) => s === params.estado);
+  const page = parsePage(params.pagina);
+  const where = status ? { status } : undefined;
 
-  const orders = await prisma.order.findMany({
-    where: status ? { status } : undefined,
-    orderBy: { createdAt: "desc" },
-  });
+  // Solo se trae la página pedida; el id desempata para que el orden sea estable entre páginas.
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      ...pageRange(page),
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  redirectIfPageOutOfRange(page, total, "/admin/pedidos", params);
 
   return (
     <div>
@@ -52,7 +63,10 @@ export default async function AdminOrdersPage({
       {orders.length === 0 ? (
         <p className="mt-6 text-sm text-neutral-500">No hay pedidos con ese filtro.</p>
       ) : (
-        <OrdersTable orders={orders} showPayment />
+        <>
+          <OrdersTable orders={orders} showPayment />
+          <Pagination page={page} total={total} pathname="/admin/pedidos" searchParams={params} />
+        </>
       )}
     </div>
   );

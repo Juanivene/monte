@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 
 /**
  * Motor de datos en memoria que imita la superficie de la Prisma Client que
- * usa esta app (findMany/findUnique/count/create/update/updateMany/delete/
+ * usa esta app (findMany/findUnique/count/create/update/updateMany/upsert/delete/
  * deleteMany/$transaction, con where/include/select/orderBy/take), a medida
  * de las consultas que realmente existen en el código — no es un ORM
  * genérico. Así el resto del código (server actions, páginas) no cambia una
@@ -21,7 +21,8 @@ export type ModelName =
   | "productGroup"
   | "order"
   | "orderItem"
-  | "legend";
+  | "legend"
+  | "siteContent";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Doc = Record<string, any>;
@@ -63,9 +64,17 @@ const RELATIONS: Record<ModelName, Record<string, RelationDef>> = {
     product: { kind: "belongsTo", foreignKey: "productId", target: "product" },
   },
   legend: {},
+  siteContent: {},
 };
 
-const WITH_TIMESTAMPS = new Set<ModelName>(["admin", "category", "product", "order", "legend"]);
+const WITH_TIMESTAMPS = new Set<ModelName>([
+  "admin",
+  "category",
+  "product",
+  "order",
+  "legend",
+  "siteContent",
+]);
 
 export type Store = Record<ModelName, Doc[]>;
 
@@ -80,6 +89,7 @@ function emptyStore(): Store {
     order: [],
     orderItem: [],
     legend: [],
+    siteContent: [],
   };
 }
 
@@ -311,6 +321,23 @@ function createModelApi(model: ModelName) {
       return { count: list.length };
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    upsert: async (args: any) => {
+      const item = store[model].find((d) => matchWhere(model, d, args.where));
+      if (item) {
+        Object.assign(item, args.update);
+        if (WITH_TIMESTAMPS.has(model)) item.updatedAt = new Date();
+        return shape(model, item, args);
+      }
+      const now = new Date();
+      const created: Doc = { id: genId(), ...args.create };
+      if (WITH_TIMESTAMPS.has(model)) {
+        created.createdAt = now;
+        created.updatedAt = now;
+      }
+      store[model].push(created);
+      return shape(model, created, args);
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete: async (args: any) => {
       const item = store[model].find((d) => matchWhere(model, d, args.where));
       if (!item) throw notFound(model);
@@ -353,6 +380,7 @@ export function buildMockPrisma() {
     order: createModelApi("order"),
     orderItem: createModelApi("orderItem"),
     legend: createModelApi("legend"),
+    siteContent: createModelApi("siteContent"),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     $transaction: async (arg: any) => {
       if (Array.isArray(arg)) return Promise.all(arg);

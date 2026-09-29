@@ -18,9 +18,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  const { contentType, size } = (await request.json()) as {
+  const { contentType, size, folder } = (await request.json()) as {
     contentType?: string;
     size?: number;
+    folder?: string;
   };
 
   const extension = contentType ? EXTENSIONS[contentType] : undefined;
@@ -32,7 +33,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const key = `products/${randomUUID()}.${extension}`;
+    // Las fotos del home (editor de /admin/preview) van aparte de las de productos.
+    const prefix = folder === "site" ? "site" : "products";
+    const key = `${prefix}/${randomUUID()}.${extension}`;
     return NextResponse.json(await createUploadUrl(key, contentType!, size));
   } catch (error) {
     return NextResponse.json(

@@ -160,3 +160,16 @@ model Legend {
 
   @@index([group])
 }
+
+/// Contenido editable del home (textos y fotos) que se edita desde
+/// /admin/preview. Solo guarda lo que difiere de los valores por defecto del
+/// código (src/lib/site-content/fields.ts): si la fila no existe, o la base no
+/// responde, la tienda muestra esos defaults.
+model SiteContent {
+  key       String   @id
+  /// Lo que se está editando en la preview, todavía no visible en la tienda.
+  draft     Json?
+  /// Lo que ve el cliente.
+  published Json?
+  updatedAt DateTime @updatedAt
+}

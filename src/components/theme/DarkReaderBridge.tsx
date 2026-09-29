@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 
 /**
@@ -17,13 +18,16 @@ import { useTheme } from "next-themes";
  */
 export function DarkReaderBridge() {
   const { resolvedTheme } = useTheme();
+  // El editor de /admin/preview muestra la tienda, que ya tiene su propia
+  // paleta oscura: ahí Dark Reader la desfiguraría.
+  const isStorePreview = usePathname().startsWith("/admin/preview");
 
   useEffect(() => {
     let cancelled = false;
 
     import("darkreader").then((DarkReader) => {
       if (cancelled) return;
-      if (resolvedTheme === "dark") {
+      if (resolvedTheme === "dark" && !isStorePreview) {
         DarkReader.enable({
           brightness: 100,
           contrast: 90,
@@ -39,7 +43,7 @@ export function DarkReaderBridge() {
     return () => {
       cancelled = true;
     };
-  }, [resolvedTheme]);
+  }, [resolvedTheme, isStorePreview]);
 
   // Al salir del todo de /admin (layout desmontado) hay que apagarlo, si no
   // el filtro se le queda pegado a la tienda al volver.
