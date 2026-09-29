@@ -42,7 +42,7 @@ export const TEXT_FIELDS = {
   "hero.eyebrow": { default: "Colección 01 · 2026", en: "Collection 01 · 2026", max: 60 },
   "hero.title": {
     default: "El monte\nestá en la\n*ciudad*",
-    en: "The wild\nlives in the\n*city*",
+    en: "The monte\nlives in the\n*city*",
     max: 80,
     multiline: true,
   },

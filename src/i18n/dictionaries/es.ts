@@ -24,9 +24,9 @@ const es = {
     home: (site: string) => `${site} — inicio`,
     openMenu: "Abrir menú",
     closeMenu: "Cerrar menú",
-    switchTo: "English",
-    switchToShort: "EN",
-    switchLabel: "Ver el sitio en inglés",
+    languageLabel: "Idioma",
+    // En el idioma de destino: es lo que entiende quien lo está buscando.
+    switchLabel: "View this site in English",
   },
   theme: {
     toLight: "Cambiar a modo claro",
@@ -43,7 +43,8 @@ const es = {
     emptyBody:
       "Estamos terminando de cargar la colección. Mientras tanto, date una vuelta por el lookbook.",
     items: (n: number) => `${n} ${n === 1 ? "prenda" : "prendas"}`,
-    showing: (visible: number, total: number) => `Mostrando ${visible} de ${total}`,
+    showing: (visible: number, total: number) =>
+      `Mostrando ${visible} de ${total}`,
     showMore: "Ver más",
     showAll: "Ver todos los productos",
   },
@@ -70,7 +71,8 @@ const es = {
     sizeQuestion: "¿Dudas con el talle? Consultanos →",
     keepBrowsing: "Seguí mirando",
     viewAll: "Ver todo →",
-    whatsappQuestion: (product: string) => `¡Hola! Quería consultar por "${product}".`,
+    whatsappQuestion: (product: string) =>
+      `¡Hola! Quería consultar por "${product}".`,
     prevImage: "Imagen anterior",
     nextImage: "Imagen siguiente",
     viewImage: (n: number) => `Ver imagen ${n}`,
@@ -94,12 +96,14 @@ const es = {
   },
   cart: {
     emptyTitle: "Tu carrito está vacío",
-    emptyBody: "Todavía no agregaste nada. Date una vuelta por la colección: sale poco de cada diseño.",
+    emptyBody:
+      "Todavía no agregaste nada. Date una vuelta por la colección: sale poco de cada diseño.",
     viewCollection: "Ver colección",
     title: "Tu carrito",
     removed: "Lo sacamos del carrito",
     remove: "Quitar",
-    removeLabel: (product: string, size: string) => `Quitar ${product} talle ${size}`,
+    removeLabel: (product: string, size: string) =>
+      `Quitar ${product} talle ${size}`,
     decrease: "Restar uno",
     increase: "Sumar uno",
     summary: "Resumen",
@@ -130,7 +134,7 @@ const es = {
     defaultCountry: "Argentina",
     notes: "Notas para la entrega (opcional)",
     notesPlaceholder: "Timbre, horarios, referencias…",
-    transfer: "Transferencia",
+    transfer: "Transferencia / zelle",
     card: "Tarjeta",
     transferHint: "Coordinamos el pago y el envío después, por WhatsApp.",
     cardHint: "Pagás ahora con tarjeta de crédito o débito, vía PayPal.",
@@ -159,7 +163,8 @@ const es = {
     paypalStart: "No se pudo iniciar el pago",
     paypalConfirm: "No se pudo confirmar el pago",
     paypalGeneric: "Ocurrió un error con PayPal. Probá de nuevo.",
-    paypalDeclined: "El pago fue rechazado. Probá con otra tarjeta o medio de pago.",
+    paypalDeclined:
+      "El pago fue rechazado. Probá con otra tarjeta o medio de pago.",
     paypalPending: (code: string) =>
       `PayPal dejó tu pago pendiente de revisión. No vuelvas a pagar: escribinos con este código y lo resolvemos: ${code}`,
     paypalAmount: (code: string) =>
@@ -186,8 +191,7 @@ const es = {
   notFound: {
     eyebrow: "Error 404",
     title: "Te fuiste\nal monte",
-    body:
-      "Esta página no existe, o la prenda que buscabas ya no está disponible. Nuestras tiradas son cortas: cuando algo se agota, sale del catálogo.",
+    body: "Esta página no existe, o la prenda que buscabas ya no está disponible. Nuestras tiradas son cortas: cuando algo se agota, sale del catálogo.",
     cta: "Ver colección",
     lookbook: "Ir al lookbook",
   },
@@ -198,12 +202,14 @@ const es = {
     allCatalog: "Todo el catálogo",
     lookbook: "Lookbook",
     myCart: "Mi carrito",
-    rights: (year: number, site: string) => `© ${year} ${site}. Todos los derechos reservados.`,
+    rights: (year: number, site: string) =>
+      `© ${year} ${site}. Todos los derechos reservados.`,
   },
   /** Mensajes que el comprador le manda a la tienda por WhatsApp. */
   whatsapp: {
     contact: "¡Hola! Estaba mirando la tienda y quería hacerles una consulta.",
-    orderIntro: (name: string, ref: string) => `Hola! Soy ${name}, acabo de hacer el pedido #${ref}:`,
+    orderIntro: (name: string, ref: string) =>
+      `Hola! Soy ${name}, acabo de hacer el pedido #${ref}:`,
     orderItem: (qty: number, product: string, size: string, price: string) =>
       `• ${qty}x ${product} - Talle ${size} - ${price} c/u`,
     orderTotal: (total: string) => `Total: ${total}`,
@@ -215,9 +221,11 @@ const es = {
     confirmationBody: (ref: string) =>
       `Recibimos tu pedido #${ref}. Te vamos a contactar por WhatsApp para coordinar el pago y el envío.`,
     shipTo: "Envío a:",
-    itemLine: (qty: number, product: string, size: string) => `${qty}x ${product} — Talle ${size}`,
+    itemLine: (qty: number, product: string, size: string) =>
+      `${qty}x ${product} — Talle ${size}`,
     total: "Total",
-    questions: "Si tenés alguna duda, respondé este email o escribinos por WhatsApp.",
+    questions:
+      "Si tenés alguna duda, respondé este email o escribinos por WhatsApp.",
     hello: (name: string) => `Hola, ${name}`,
     orderRef: (ref: string) => `Pedido #${ref}.`,
     status: {
@@ -232,11 +240,13 @@ const es = {
       },
       ENTREGADO: {
         subject: "Tu pedido fue entregado",
-        message: "Tu pedido figura como entregado. ¡Esperamos que lo disfrutes!",
+        message:
+          "Tu pedido figura como entregado. ¡Esperamos que lo disfrutes!",
       },
       CANCELADO: {
         subject: "Tu pedido fue cancelado",
-        message: "Tu pedido fue cancelado. Si creés que es un error, escribinos por WhatsApp.",
+        message:
+          "Tu pedido fue cancelado. Si creés que es un error, escribinos por WhatsApp.",
       },
     },
   },
@@ -244,3 +254,4 @@ const es = {
 
 export default es;
 export type Dictionary = typeof es;
+
