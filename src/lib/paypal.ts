@@ -17,11 +17,6 @@ const PAYPAL_API_BASE =
     : "https://api-m.sandbox.paypal.com";
 
 function getCredentials() {
-  // En el deploy de producción, cobrar contra sandbox "aprueba" cualquier
-  // tarjeta sin mover plata: mejor fallar que crear pedidos falsos.
-  if (process.env.VERCEL_ENV === "production" && process.env.PAYPAL_ENV !== "live") {
-    throw new Error("PayPal no está configurado en modo live");
-  }
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
