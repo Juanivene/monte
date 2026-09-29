@@ -15,7 +15,7 @@ export default async function AdminDashboardPage() {
   const [orders, ...counts] = await Promise.all([
     prisma.order.findMany({
       orderBy: { createdAt: "desc" },
-      take: 20,
+      take: 10,
     }),
     ...PENDING_WORK.map(({ status }) => prisma.order.count({ where: { status } })),
   ]);

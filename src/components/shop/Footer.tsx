@@ -1,32 +1,39 @@
 import Link from "next/link";
-import Image from "next/image";
-import { shots } from "@/lib/lookbook";
+import type { SiteContent, TextField } from "@/lib/site-content/fields";
+import { EditableImage } from "@/components/site-editor/EditableImage";
+import { EditableText } from "@/components/site-editor/EditableText";
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Monte";
 const whatsappNumber = process.env.WHATSAPP_NUMBER;
 
 export function Footer({
   categories,
+  content,
 }: {
   categories: { slug: string; name: string }[];
+  content: SiteContent;
 }) {
+  const { text, image } = content;
+  const t = (field: TextField) => <EditableText field={field} value={text[field]} />;
+
   return (
     <footer className="bg-night text-paper mt-24 sm:mt-32">
       {/* Franja editorial: foto ancha + claim */}
       <div className="relative isolate overflow-hidden">
-        <Image
-          src={shots.trioSenda.src}
-          alt={shots.trioSenda.alt}
-          placeholder="blur"
+        <EditableImage
+          field="footer.bg"
+          image={image["footer.bg"]}
           sizes="100vw"
-          className="absolute inset-0 -z-10 h-full w-full object-cover object-[50%_35%] opacity-35"
+          className="-z-10 object-cover opacity-35"
         />
         <div className="container-page py-20 text-center sm:py-28">
-          <p className="eyebrow text-paper/60">Tucumán · Argentina</p>
+          <p className="eyebrow text-paper/60">{t("footer.eyebrow")}</p>
           <p className="headline mx-auto mt-5 max-w-3xl text-[10vw] leading-[0.92] sm:text-6xl lg:text-7xl">
-            Tiradas cortas,
-            <br />
-            hechas para largo usos
+            <EditableText
+              field="footer.claim"
+              value={text["footer.claim"]}
+              accentClassName="text-accent"
+            />
           </p>
         </div>
       </div>
@@ -38,8 +45,7 @@ export function Footer({
             <span className="text-accent">.</span>
           </p>
           <p className="text-paper/55 mt-4 max-w-xs text-sm leading-relaxed">
-            Indumentaria de diseño independiente. Cada prenda sale en cantidades
-            chicas: cuando se agota, se agota.
+            {t("footer.brand")}
           </p>
         </div>
 
@@ -58,25 +64,23 @@ export function Footer({
 
         <FooterColumn title="Ayuda">
           <FooterLink href="/carrito">Mi carrito</FooterLink>
-          <li className="text-paper/55 text-sm">Envíos a todo el país</li>
-          <li className="text-paper/55 text-sm">
-            Cambios dentro de los 30 días
-          </li>
-          <li className="text-paper/55 text-sm">
-            Pago coordinado por WhatsApp
-          </li>
+          <li className="text-paper/55 text-sm">{t("footer.help1")}</li>
+          <li className="text-paper/55 text-sm">{t("footer.help2")}</li>
+          <li className="text-paper/55 text-sm">{t("footer.help3")}</li>
         </FooterColumn>
 
         <FooterColumn title="Seguinos">
           <li>
             <a
-              href="https://instagram.com/monteclub.arg"
+              href={text["footer.instagram"]}
               target="_blank"
               rel="noopener noreferrer"
               className="link-underline text-paper/55 hover:text-paper text-sm transition-colors"
             >
               Instagram
             </a>
+            {/* Solo se ve en el editor: botón para cambiar el link. */}
+            {t("footer.instagram")}
           </li>
           {whatsappNumber && (
             <li>
@@ -99,7 +103,7 @@ export function Footer({
             © {new Date().getFullYear()} {siteName}. Todos los derechos
             reservados.
           </span>
-          <span className="eyebrow text-paper/30">Made In Tucumán</span>
+          <span className="eyebrow text-paper/30">{t("footer.madeIn")}</span>
         </div>
       </div>
     </footer>

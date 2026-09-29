@@ -17,10 +17,12 @@ export const PRODUCT_SORT_OPTIONS: { value: ProductSort; label: string }[] = [
   { value: "nombre", label: "Nombre (A-Z)" },
 ];
 
-export const PRODUCT_SORT_ORDER_BY: Record<ProductSort, Prisma.ProductOrderByWithRelationInput> = {
-  recientes: { createdAt: "desc" },
-  antiguos: { createdAt: "asc" },
-  nombre: { name: "asc" },
+// El `id` desempata: con paginación el orden tiene que ser estable, si no dos
+// productos con el mismo nombre/fecha pueden saltar de página o repetirse.
+export const PRODUCT_SORT_ORDER_BY: Record<ProductSort, Prisma.ProductOrderByWithRelationInput[]> = {
+  recientes: [{ createdAt: "desc" }, { id: "desc" }],
+  antiguos: [{ createdAt: "asc" }, { id: "asc" }],
+  nombre: [{ name: "asc" }, { id: "asc" }],
 };
 
 // Los valores vienen de la URL: cualquier cosa desconocida cae al default.

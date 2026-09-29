@@ -33,7 +33,10 @@ export function PaypalCheckoutButton({
     return data.paypalOrderId as string;
   }
 
-  async function approveOrder(paypalOrderId: string) {
+  async function approveOrder(
+    paypalOrderId: string,
+    restart?: () => void,
+  ) {
     const res = await fetch("/api/paypal/capture-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -41,6 +44,12 @@ export function PaypalCheckoutButton({
     });
     const result = await res.json();
     if (!res.ok || !result.ok) {
+      // Tarjeta rechazada: PayPal permite reintentar la misma orden con otro medio.
+      if (result.declined && restart) {
+        onError(result.error);
+        restart();
+        return;
+      }
       onError(result.error ?? "No se pudo confirmar el pago");
       return;
     }
@@ -80,7 +89,9 @@ export function PaypalCheckoutButton({
       <PayPalButtons
         style={{ layout: "vertical", label: "pay" }}
         createOrder={createOrder}
-        onApprove={async (data) => approveOrder(data.orderID)}
+        onApprove={async (data, actions) =>
+          approveOrder(data.orderID, actions.restart)
+        }
         onError={() => {
           onError("Ocurrió un error con PayPal. Probá de nuevo.");
         }}

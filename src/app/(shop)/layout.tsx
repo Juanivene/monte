@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Toaster } from "sonner";
 import { prisma } from "@/lib/prisma";
+import { getPublishedContent } from "@/lib/site-content/get";
 import { Header } from "@/components/shop/Header";
 import { Footer } from "@/components/shop/Footer";
 import { AnnouncementBar } from "@/components/shop/AnnouncementBar";
@@ -10,10 +11,13 @@ import { AnnouncementBar } from "@/components/shop/AnnouncementBar";
 export const dynamic = "force-dynamic";
 
 export default async function ShopLayout({ children }: { children: React.ReactNode }) {
-  const categories = await prisma.category.findMany({
-    orderBy: { name: "asc" },
-    select: { slug: true, name: true },
-  });
+  const [categories, content] = await Promise.all([
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+      select: { slug: true, name: true },
+    }),
+    getPublishedContent(),
+  ]);
 
   return (
     <>
@@ -23,7 +27,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
         <Header categories={categories} />
       </Suspense>
       <main className="flex-1">{children}</main>
-      <Footer categories={categories} />
+      <Footer categories={categories} content={content} />
       <Toaster
         position="bottom-right"
         toastOptions={{

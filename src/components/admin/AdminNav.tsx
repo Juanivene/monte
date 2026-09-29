@@ -56,6 +56,12 @@ const icons = {
       <path d="M4 7h16M4 12h16M4 17h10" />
     </Icon>
   ),
+  editHome: (
+    <Icon>
+      <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+      <path d="m13.5 6.5 4 4" />
+    </Icon>
+  ),
   settings: (
     <Icon>
       <rect x="4" y="10" width="16" height="11" rx="2" />
@@ -79,6 +85,7 @@ const mainItems: NavItem[] = [
 ];
 
 const moreItems: NavItem[] = [
+  { href: "/admin/preview", label: "Editar home", icon: icons.editHome },
   { href: "/admin/leyendas", label: "Leyendas", icon: icons.legends },
   { href: "/admin/ajustes", label: "Ajustes", icon: icons.settings },
 ];

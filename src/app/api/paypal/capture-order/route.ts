@@ -27,8 +27,38 @@ export async function POST(request: Request): Promise<NextResponse> {
     const { orderItemsData, total } = computed;
 
     const capture = await capturePaypalOrder(paypalOrderId);
-    if (capture.status !== "COMPLETED" || capture.capturedAmount !== total) {
+    if (capture.status !== "COMPLETED") {
+      console.error("[paypal] captura no completada", { paypalOrderId, ...capture });
+      if (capture.status === "DECLINED") {
+        return NextResponse.json(
+          {
+            error: "El pago fue rechazado. Probá con otra tarjeta o medio de pago.",
+            declined: true,
+          },
+          { status: 402 },
+        );
+      }
+      if (capture.status === "PENDING") {
+        return NextResponse.json(
+          {
+            error: `PayPal dejó tu pago pendiente de revisión. No vuelvas a pagar: escribinos con este código y lo resolvemos: ${paypalOrderId}`,
+          },
+          { status: 402 },
+        );
+      }
       return NextResponse.json({ error: "El pago no se pudo confirmar" }, { status: 400 });
+    }
+    if (capture.capturedAmount !== total) {
+      // Se cobró, pero no el monto esperado: no creamos el pedido y queda logueado.
+      console.error("[paypal] monto capturado distinto al total", {
+        paypalOrderId,
+        capturedAmount: capture.capturedAmount,
+        total,
+      });
+      return NextResponse.json(
+        { error: `No pudimos validar el monto del pago. Escribinos con este código: ${paypalOrderId}` },
+        { status: 400 },
+      );
     }
 
     const paidAt = new Date();

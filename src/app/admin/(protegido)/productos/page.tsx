@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ProductFilters } from "@/components/admin/ProductFilters";
 import { ProductsTable } from "@/components/admin/ProductsTable";
+import { Pagination } from "@/components/admin/Pagination";
+import { pageRange, parsePage, redirectIfPageOutOfRange } from "@/lib/pagination";
 import {
   PRODUCT_SORT_ORDER_BY,
   parseProductSort,
@@ -14,9 +16,11 @@ import {
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; categoria?: string; estado?: string; orden?: string }>;
+  searchParams: Promise<{ q?: string; categoria?: string; estado?: string; orden?: string; pagina?: string }>;
 }) {
-  const { q, categoria, estado, orden } = await searchParams;
+  const params = await searchParams;
+  const { q, categoria, estado, orden } = params;
+  const page = parsePage(params.pagina);
   const query = q?.trim();
   const status = parseProductStatus(estado);
   const sort = parseProductSort(orden);
@@ -29,7 +33,8 @@ export default async function AdminProductsPage({
     ...(status ? { isActive: status === "activos" } : {}),
   };
 
-  const [products, categories] = await Promise.all([
+  // Solo se trae la página pedida; el count (con el mismo where) arma la paginación.
+  const [products, total, categories] = await Promise.all([
     prisma.product.findMany({
       where,
       include: {
@@ -38,9 +43,13 @@ export default async function AdminProductsPage({
         variants: true,
       },
       orderBy: PRODUCT_SORT_ORDER_BY[sort],
+      ...pageRange(page),
     }),
+    prisma.product.count({ where }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
+
+  redirectIfPageOutOfRange(page, total, "/admin/productos", params);
 
   const hasFilters = Boolean(query || categoria || status);
 
@@ -81,7 +90,12 @@ export default async function AdminProductsPage({
             : "Todavía no cargaste productos."}
         </p>
       ) : (
-        <ProductsTable products={products} />
+        <>
+          <ProductsTable products={products} />
+          <Pagination page={page} total={total} pathname="/admin/productos" searchParams={params} />
+          {/* En teléfono deja lugar para que el botón flotante no tape "Siguiente". */}
+          <div aria-hidden="true" className="h-10 sm:hidden" />
+        </>
       )}
     </div>
   );

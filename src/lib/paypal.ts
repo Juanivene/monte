@@ -17,6 +17,11 @@ const PAYPAL_API_BASE =
     : "https://api-m.sandbox.paypal.com";
 
 function getCredentials() {
+  // En el deploy de producción, cobrar contra sandbox "aprueba" cualquier
+  // tarjeta sin mover plata: mejor fallar que crear pedidos falsos.
+  if (process.env.VERCEL_ENV === "production" && process.env.PAYPAL_ENV !== "live") {
+    throw new Error("PayPal no está configurado en modo live");
+  }
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
@@ -72,9 +77,19 @@ export async function createPaypalOrder(total: number): Promise<string> {
   return data.id;
 }
 
-export type PaypalCaptureResult = {
-  status: string;
-  capturedAmount: number | null;
+export type PaypalCaptureResult =
+  | { status: "COMPLETED"; capturedAmount: number }
+  | {
+      status: "DECLINED" | "PENDING" | "FAILED";
+      capturedAmount: null;
+      /** Código de PayPal (ej. INSTRUMENT_DECLINED) o motivo del PENDING, para logs. */
+      reason?: string;
+    };
+
+type PaypalCapture = {
+  status?: string;
+  amount?: { value?: string; currency_code?: string };
+  status_details?: { reason?: string };
 };
 
 export async function capturePaypalOrder(
@@ -98,19 +113,42 @@ export async function capturePaypalOrder(
       },
     },
   );
+  const data = (await res.json().catch(() => null)) as {
+    status?: string;
+    details?: Array<{ issue?: string }>;
+    purchase_units?: Array<{ payments?: { captures?: PaypalCapture[] } }>;
+  } | null;
+
   if (!res.ok) {
-    return { status: "FAILED", capturedAmount: null };
+    // Tarjeta rechazada, fondos insuficientes, etc. PayPal responde 422 con
+    // el motivo en details[0].issue.
+    const issue = data?.details?.[0]?.issue;
+    return {
+      status: issue === "INSTRUMENT_DECLINED" ? "DECLINED" : "FAILED",
+      capturedAmount: null,
+      reason: issue,
+    };
   }
-  const data = (await res.json()) as {
-    status: string;
-    purchase_units?: Array<{
-      payments?: { captures?: Array<{ amount?: { value?: string } }> };
-    }>;
-  };
-  const capturedValue =
-    data.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value;
+
+  // Que la orden esté COMPLETED no alcanza: la captura (el movimiento de plata)
+  // puede quedar PENDING o DECLINED. Solo damos el pago por hecho si la
+  // captura está COMPLETED y en la moneda esperada.
+  const capture = data?.purchase_units?.[0]?.payments?.captures?.[0];
+  const value = capture?.amount?.value;
+  if (
+    data?.status === "COMPLETED" &&
+    capture?.status === "COMPLETED" &&
+    capture.amount?.currency_code === CHECKOUT_CURRENCY &&
+    value
+  ) {
+    return { status: "COMPLETED", capturedAmount: Number(value) };
+  }
   return {
-    status: data.status,
-    capturedAmount: capturedValue ? Number(capturedValue) : null,
+    status:
+      capture?.status === "PENDING" || capture?.status === "DECLINED"
+        ? capture.status
+        : "FAILED",
+    capturedAmount: null,
+    reason: capture?.status_details?.reason ?? capture?.status ?? data?.status,
   };
 }
