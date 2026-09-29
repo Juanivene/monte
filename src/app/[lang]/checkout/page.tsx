@@ -76,7 +76,8 @@ export default function CheckoutPage() {
       const fieldErrors: Partial<Record<keyof FormState, string>> = {};
       for (const issue of parsed.error.issues) {
         const key = issue.path[0] as keyof FormState;
-        if (!fieldErrors[key]) fieldErrors[key] = checkoutErrorMessage(lang, issue.message);
+        if (!fieldErrors[key])
+          fieldErrors[key] = checkoutErrorMessage(lang, issue.message);
       }
       setErrors(fieldErrors);
       return null;
@@ -152,7 +153,12 @@ export default function CheckoutPage() {
       onError={setFormError}
     />
   ) : (
-    <Button type="button" size="lg" className="w-full" onClick={handleContinueToPayment}>
+    <Button
+      type="button"
+      size="lg"
+      className="w-full"
+      onClick={handleContinueToPayment}
+    >
       {t.checkout.continueToPayment}
     </Button>
   );
@@ -161,7 +167,9 @@ export default function CheckoutPage() {
     <div className="container-page py-12 sm:py-16">
       <div className="border-ink/12 border-b pb-6">
         <p className="eyebrow text-ink-muted">{t.checkout.step}</p>
-        <h1 className="headline mt-3 text-4xl sm:text-5xl">{t.checkout.title}</h1>
+        <h1 className="headline mt-3 text-4xl sm:text-5xl">
+          {t.checkout.title}
+        </h1>
         <p className="text-ink-muted mt-3 max-w-lg text-sm leading-relaxed">
           {t.checkout.intro}
         </p>
@@ -255,7 +263,9 @@ export default function CheckoutPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="shippingPostalCode">{t.checkout.postalCode}</Label>
+                <Label htmlFor="shippingPostalCode">
+                  {t.checkout.postalCode}
+                </Label>
                 <Input
                   id="shippingPostalCode"
                   autoComplete="postal-code"
@@ -316,7 +326,9 @@ export default function CheckoutPage() {
               })}
             </div>
             <p className="text-ink-muted mt-3 text-xs leading-relaxed">
-              {paymentMethod === "transferencia" ? t.checkout.transferHint : t.checkout.cardHint}
+              {paymentMethod === "transferencia"
+                ? t.checkout.transferHint
+                : t.checkout.cardHint}
             </p>
           </section>
 
@@ -328,7 +340,12 @@ export default function CheckoutPage() {
 
           <div className="lg:hidden">
             {paymentMethod === "transferencia" ? (
-              <Button type="submit" size="lg" disabled={submitting} className="w-full">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={submitting}
+                className="w-full"
+              >
                 {submitting ? t.checkout.sending : t.checkout.confirm}
               </Button>
             ) : (
@@ -416,3 +433,4 @@ function SectionTitle({ index, title }: { index: string; title: string }) {
     </div>
   );
 }
+

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
+import { deleteR2Images } from "@/lib/r2";
 import { generateUniqueSlug } from "@/lib/unique-slug";
 import { productSchema, type ProductInput } from "@/lib/validations";
 import type { Size } from "@prisma/client";
@@ -24,6 +25,21 @@ async function slugExists(candidate: string, excludeId?: string) {
     where: { slug: candidate, ...(excludeId ? { id: { not: excludeId } } : {}) },
   });
   return count > 0;
+}
+
+/**
+ * Borra del bucket las fotos que ya no usa ningún producto. Se llama después
+ * de guardar en la base: una misma URL puede estar en más de un producto
+ * (por ejemplo, variantes de color que comparten foto) y esa no se toca.
+ */
+async function deleteUnusedProductImages(urls: string[]) {
+  if (urls.length === 0) return;
+  const stillUsed = await prisma.productImage.findMany({
+    where: { url: { in: urls } },
+    select: { url: true },
+  });
+  const used = new Set(stillUsed.map((img) => img.url));
+  await deleteR2Images(urls.filter((url) => !used.has(url)));
 }
 
 export async function createProduct(input: ProductInput): Promise<ProductActionResult> {
@@ -69,7 +85,7 @@ export async function updateProduct(
   }
   const data = parsed.data;
 
-  const current = await prisma.product.findUnique({ where: { id } });
+  const current = await prisma.product.findUnique({ where: { id }, include: { images: true } });
   if (!current) return { ok: false, error: "Producto no encontrado" };
 
   const slug =
@@ -101,6 +117,12 @@ export async function updateProduct(
     }),
   ]);
 
+  // Fotos que se sacaron o reemplazaron en esta edición.
+  const kept = new Set(data.images);
+  await deleteUnusedProductImages(
+    current.images.map((img) => img.url).filter((url) => !kept.has(url)),
+  );
+
   revalidateShop();
   revalidatePath("/[lang]/productos/[slug]", "page");
   return { ok: true, productId: id };
@@ -108,6 +130,10 @@ export async function updateProduct(
 
 export async function deleteProduct(id: string): Promise<ActionResult> {
   await requireAdmin();
+  const images = await prisma.productImage.findMany({
+    where: { productId: id },
+    select: { url: true },
+  });
   try {
     await prisma.product.delete({ where: { id } });
   } catch (err) {
@@ -116,6 +142,8 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
     }
     throw err;
   }
+  // Las filas de imágenes se borran en cascada con el producto; los archivos, acá.
+  await deleteUnusedProductImages(images.map((img) => img.url));
   revalidateShop();
   return { ok: true };
 }

@@ -23,8 +23,7 @@ const en: Dictionary = {
     home: (site) => `${site} — home`,
     openMenu: "Open menu",
     closeMenu: "Close menu",
-    switchTo: "Español",
-    switchToShort: "ES",
+    languageLabel: "Language",
     switchLabel: "Ver el sitio en español",
   },
   theme: {
@@ -39,7 +38,8 @@ const en: Dictionary = {
     emptyCategoryTitle: (category) => `Nothing in ${category} yet`,
     emptyCategoryBody: "Try another category or browse the full catalog.",
     emptyTitle: "The first drop is on its way",
-    emptyBody: "We're finishing up the collection. In the meantime, take a look at the lookbook.",
+    emptyBody:
+      "We're finishing up the collection. In the meantime, take a look at the lookbook.",
     items: (n) => `${n} ${n === 1 ? "piece" : "pieces"}`,
     showing: (visible, total) => `Showing ${visible} of ${total}`,
     showMore: "Show more",
@@ -91,7 +91,8 @@ const en: Dictionary = {
   },
   cart: {
     emptyTitle: "Your cart is empty",
-    emptyBody: "Nothing here yet. Take a look at the collection: each design comes in small numbers.",
+    emptyBody:
+      "Nothing here yet. Take a look at the collection: each design comes in small numbers.",
     viewCollection: "Shop the collection",
     title: "Your cart",
     removed: "Removed from your cart",
@@ -127,9 +128,10 @@ const en: Dictionary = {
     defaultCountry: "United States",
     notes: "Delivery notes (optional)",
     notesPlaceholder: "Buzzer, delivery hours, landmarks…",
-    transfer: "Bank transfer",
+    transfer: "Bank transfer / zelle",
     card: "Card",
-    transferHint: "We'll arrange payment and shipping afterwards, over WhatsApp.",
+    transferHint:
+      "We'll arrange payment and shipping afterwards, over WhatsApp.",
     cardHint: "Pay now with a credit or debit card, via PayPal.",
     sending: "Sending…",
     confirm: "Place order",
@@ -150,14 +152,17 @@ const en: Dictionary = {
     emptyCart: "Your cart is empty",
     invalid: "Please check the form details",
     productUnavailable: "One of the products is no longer available",
-    notEnoughStock: (product, size) => `There isn't enough stock of "${product}" in size ${size}`,
+    notEnoughStock: (product, size) =>
+      `There isn't enough stock of "${product}" in size ${size}`,
     paypalStart: "We couldn't start the payment",
     paypalConfirm: "We couldn't confirm the payment",
     paypalGeneric: "Something went wrong with PayPal. Please try again.",
-    paypalDeclined: "Your payment was declined. Please try another card or payment method.",
+    paypalDeclined:
+      "Your payment was declined. Please try another card or payment method.",
     paypalPending: (code) =>
       `PayPal put your payment on hold for review. Please don't pay again: message us with this code and we'll sort it out: ${code}`,
-    paypalAmount: (code) => `We couldn't verify the payment amount. Please message us with this code: ${code}`,
+    paypalAmount: (code) =>
+      `We couldn't verify the payment amount. Please message us with this code: ${code}`,
     paypalNotConfirmed: "The payment couldn't be confirmed",
     mockPaying: "Processing mock payment...",
     mockPay: "Pay with PayPal (mock mode)",
@@ -180,8 +185,7 @@ const en: Dictionary = {
   notFound: {
     eyebrow: "Error 404",
     title: "Lost in\nthe wild",
-    body:
-      "This page doesn't exist, or the piece you were looking for is no longer available. Our runs are small: once something sells out, it leaves the catalog.",
+    body: "This page doesn't exist, or the piece you were looking for is no longer available. Our runs are small: once something sells out, it leaves the catalog.",
     cta: "Shop the collection",
     lookbook: "Go to the lookbook",
   },
@@ -197,7 +201,8 @@ const en: Dictionary = {
   whatsapp: {
     contact: "Hi! I was browsing the shop and have a question.",
     orderIntro: (name, ref) => `Hi! I'm ${name}, I just placed order #${ref}:`,
-    orderItem: (qty, product, size, price) => `• ${qty}x ${product} - Size ${size} - ${price} each`,
+    orderItem: (qty, product, size, price) =>
+      `• ${qty}x ${product} - Size ${size} - ${price} each`,
     orderTotal: (total) => `Total: ${total}`,
     orderOutro: "I'd like to arrange payment and shipping. Thanks!",
   },
@@ -209,7 +214,8 @@ const en: Dictionary = {
     shipTo: "Shipping to:",
     itemLine: (qty, product, size) => `${qty}x ${product} — Size ${size}`,
     total: "Total",
-    questions: "Any questions? Just reply to this email or message us on WhatsApp.",
+    questions:
+      "Any questions? Just reply to this email or message us on WhatsApp.",
     hello: (name) => `Hi ${name},`,
     orderRef: (ref) => `Order #${ref}.`,
     status: {
@@ -219,7 +225,8 @@ const en: Dictionary = {
       },
       ENVIADO: {
         subject: "Your order is on its way",
-        message: "Your order has shipped. We'll let you know on WhatsApp about any shipping updates.",
+        message:
+          "Your order has shipped. We'll let you know on WhatsApp about any shipping updates.",
       },
       ENTREGADO: {
         subject: "Your order was delivered",
@@ -227,10 +234,12 @@ const en: Dictionary = {
       },
       CANCELADO: {
         subject: "Your order was cancelled",
-        message: "Your order was cancelled. If you think this is a mistake, message us on WhatsApp.",
+        message:
+          "Your order was cancelled. If you think this is a mistake, message us on WhatsApp.",
       },
     },
   },
 };
 
 export default en;
+
