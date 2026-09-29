@@ -11,7 +11,7 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 function revalidateShop() {
   // La barra de anuncios vive en el layout de la tienda y la cinta del hero
   // en "/": revalidamos todo el árbol para que ambas queden al día.
-  revalidatePath("/", "layout");
+  revalidatePath("/[lang]", "layout");
 }
 
 export async function createLegend(input: LegendInput): Promise<ActionResult> {
@@ -23,21 +23,32 @@ export async function createLegend(input: LegendInput): Promise<ActionResult> {
 
   const order = await prisma.legend.count({ where: { group: parsed.data.group } });
   await prisma.legend.create({
-    data: { group: parsed.data.group as LegendGroup, text: parsed.data.text, order },
+    data: {
+      group: parsed.data.group as LegendGroup,
+      text: parsed.data.text,
+      textEn: parsed.data.textEn || null,
+      order,
+    },
   });
 
   revalidateShop();
   return { ok: true };
 }
 
-export async function updateLegendText(id: string, text: string): Promise<ActionResult> {
+export async function updateLegendText(
+  id: string,
+  input: { text: string; textEn: string },
+): Promise<ActionResult> {
   await requireAdmin();
-  const parsed = legendSchema.shape.text.safeParse(text);
+  const parsed = legendSchema.pick({ text: true, textEn: true }).safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
   }
 
-  await prisma.legend.update({ where: { id }, data: { text: parsed.data } });
+  await prisma.legend.update({
+    where: { id },
+    data: { text: parsed.data.text, textEn: parsed.data.textEn || null },
+  });
   revalidateShop();
   return { ok: true };
 }

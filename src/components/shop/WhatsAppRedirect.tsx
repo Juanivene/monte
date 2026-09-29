@@ -2,8 +2,10 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
+import { useI18n } from "@/i18n/client";
 
 export function WhatsAppRedirect({ whatsappUrl }: { whatsappUrl: string }) {
+  const { t } = useI18n();
   useEffect(() => {
     // best-effort: si el navegador bloquea el popup, queda el botón de abajo como respaldo
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
@@ -11,9 +13,9 @@ export function WhatsAppRedirect({ whatsappUrl }: { whatsappUrl: string }) {
 
   return (
     <div className="border-ink/12 mt-10 border p-6 text-center sm:p-8">
-      <p className="eyebrow text-ink-muted">Último paso</p>
+      <p className="eyebrow text-ink-muted">{t.order.lastStep}</p>
       <p className="text-ink-soft mx-auto mt-3 max-w-sm text-sm leading-relaxed">
-        Abrimos WhatsApp con el resumen listo para enviar. Si no se abrió solo, tocá acá.
+        {t.order.whatsappBody}
       </p>
       <a
         href={whatsappUrl}
@@ -22,7 +24,7 @@ export function WhatsAppRedirect({ whatsappUrl }: { whatsappUrl: string }) {
         className="mt-6 inline-block w-full sm:w-auto"
       >
         <Button size="lg" className="w-full sm:w-auto">
-          Continuar por WhatsApp
+          {t.order.whatsappCta}
         </Button>
       </a>
     </div>

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { buildContactWhatsAppLink } from "@/lib/whatsapp";
 import type { SiteContent } from "@/lib/site-content/fields";
+import { getDictionary, pick, type Locale } from "@/i18n";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { CategoryFilter } from "@/components/shop/CategoryFilter";
@@ -17,12 +18,15 @@ import { Reveal } from "@/components/ui/Reveal";
  * editor de /admin/preview (con el borrador), así los dos son idénticos.
  */
 export async function HomeView({
+  lang,
   categoria,
   content,
 }: {
+  lang: Locale;
   categoria?: string;
   content: SiteContent;
 }) {
+  const t = getDictionary(lang);
   const [categories, products, totalActive, heroLegends] = await Promise.all([
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.product.findMany({
@@ -41,8 +45,12 @@ export async function HomeView({
     prisma.legend.findMany({ where: { group: "HERO" }, orderBy: { order: "asc" } }),
   ]);
 
-  const activeCategory = categories.find((c) => c.slug === categoria);
-  const whatsappUrl = buildContactWhatsAppLink();
+  const localizedCategories = categories.map((c) => ({
+    slug: c.slug,
+    name: pick(lang, c.name, c.nameEn),
+  }));
+  const activeCategory = localizedCategories.find((c) => c.slug === categoria);
+  const whatsappUrl = buildContactWhatsAppLink(t.whatsapp.contact);
 
   return (
     <>
@@ -51,7 +59,7 @@ export async function HomeView({
       {heroLegends.length > 0 && (
         <div className="bg-night text-paper py-5 sm:py-7">
           <Marquee
-            items={heroLegends.map((legend) => legend.text)}
+            items={heroLegends.map((legend) => pick(lang, legend.text, legend.textEn))}
             separator="—"
             speed="34s"
             className="headline text-[13vw] leading-none sm:text-[7rem]"
@@ -66,19 +74,19 @@ export async function HomeView({
         <Reveal>
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="eyebrow text-ink-muted">Catálogo</p>
+              <p className="eyebrow text-ink-muted">{t.catalog.eyebrow}</p>
               <h2 className="headline mt-3 text-4xl sm:text-5xl">
-                {activeCategory ? activeCategory.name : "Todo el Drop"}
+                {activeCategory ? activeCategory.name : t.catalog.allTitle}
               </h2>
             </div>
             <p className="text-ink-muted max-w-sm text-sm leading-relaxed">
-              Talles del XS al XXL. Los stocks se actualizan en vivo: si un
-              talle no aparece, es porque ya voló.
+              {t.catalog.sizesNote}
             </p>
           </div>
 
           <CategoryFilter
-            categories={categories}
+            lang={lang}
+            categories={localizedCategories}
             active={categoria}
             total={products.length}
           />
@@ -89,14 +97,10 @@ export async function HomeView({
             <EmptyState
               title={
                 activeCategory
-                  ? `Nada en ${activeCategory.name} por ahora`
-                  : "Se viene la primera"
+                  ? t.catalog.emptyCategoryTitle(activeCategory.name)
+                  : t.catalog.emptyTitle
               }
-              description={
-                activeCategory
-                  ? "Probá con otra categoría o mirá todo el catálogo."
-                  : "Estamos terminando de cargar la colección. Mientras tanto, date una vuelta por el lookbook."
-              }
+              description={activeCategory ? t.catalog.emptyCategoryBody : t.catalog.emptyBody}
             />
           </div>
         ) : (
@@ -105,7 +109,7 @@ export async function HomeView({
             key={categoria ?? "todo"}
             items={products.map((product, i) => (
               <Reveal key={product.id} delay={(i % 4) * 90}>
-                <ProductCard product={product} eager={i < 4} />
+                <ProductCard lang={lang} product={product} eager={i < 4} />
               </Reveal>
             ))}
           />
@@ -118,4 +122,3 @@ export async function HomeView({
     </>
   );
 }
-

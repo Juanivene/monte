@@ -2,7 +2,7 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { textSpec, type TextField } from "@/lib/site-content/fields";
+import { defaultText, textSpec, type TextField } from "@/lib/site-content/fields";
 import { useSiteEditor, type SiteEditorApi } from "./context";
 import { FloatingPanel } from "./FloatingPanel";
 import { RichText } from "./RichText";
@@ -190,7 +190,7 @@ function InlineText({ field, editor, value, accentClassName }: EditorProps) {
           {multiline ? "Enter: salto de línea · *texto*: color · " : "Enter: listo · "}
           Esc: cancelar
         </span>
-        {value !== spec.default && (
+        {value !== defaultText(field, editor.lang) && (
           <button
             type="button"
             className="rounded bg-white/10 px-2 py-1 font-medium hover:bg-white/20"
@@ -290,7 +290,7 @@ function PopoverText({ field, editor, value, accentClassName }: EditorProps) {
           </label>
           {error && <p className="mt-1.5 text-red-300">{error}</p>}
           <div className="mt-3 flex items-center justify-between gap-2">
-            {value !== spec.default ? (
+            {value !== defaultText(field, editor.lang) ? (
               <button
                 type="button"
                 className="text-white/60 underline-offset-2 hover:text-white hover:underline"

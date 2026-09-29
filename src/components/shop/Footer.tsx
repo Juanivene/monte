@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { SiteContent, TextField } from "@/lib/site-content/fields";
+import { getDictionary, localePath, type Locale } from "@/i18n";
 import { EditableImage } from "@/components/site-editor/EditableImage";
 import { EditableText } from "@/components/site-editor/EditableText";
 
@@ -7,13 +8,16 @@ const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Monte";
 const whatsappNumber = process.env.WHATSAPP_NUMBER;
 
 export function Footer({
+  lang,
   categories,
   content,
 }: {
+  lang: Locale;
   categories: { slug: string; name: string }[];
   content: SiteContent;
 }) {
   const { text, image } = content;
+  const dict = getDictionary(lang);
   const t = (field: TextField) => <EditableText field={field} value={text[field]} />;
 
   return (
@@ -49,27 +53,27 @@ export function Footer({
           </p>
         </div>
 
-        <FooterColumn title="Tienda">
-          <FooterLink href="/">Todo el catálogo</FooterLink>
+        <FooterColumn title={dict.footer.shop}>
+          <FooterLink href={localePath(lang, "/")}>{dict.footer.allCatalog}</FooterLink>
           {categories.map((category) => (
             <FooterLink
               key={category.slug}
-              href={`/?categoria=${category.slug}`}
+              href={localePath(lang, `/?categoria=${category.slug}`)}
             >
               {category.name}
             </FooterLink>
           ))}
-          <FooterLink href="/#lookbook">Lookbook</FooterLink>
+          <FooterLink href={localePath(lang, "/#lookbook")}>{dict.footer.lookbook}</FooterLink>
         </FooterColumn>
 
-        <FooterColumn title="Ayuda">
-          <FooterLink href="/carrito">Mi carrito</FooterLink>
+        <FooterColumn title={dict.footer.help}>
+          <FooterLink href={localePath(lang, "/carrito")}>{dict.footer.myCart}</FooterLink>
           <li className="text-paper/55 text-sm">{t("footer.help1")}</li>
           <li className="text-paper/55 text-sm">{t("footer.help2")}</li>
           <li className="text-paper/55 text-sm">{t("footer.help3")}</li>
         </FooterColumn>
 
-        <FooterColumn title="Seguinos">
+        <FooterColumn title={dict.footer.follow}>
           <li>
             <a
               href={text["footer.instagram"]}
@@ -100,8 +104,7 @@ export function Footer({
       <div className="border-paper/10 border-t">
         <div className="container-page text-paper/40 flex flex-col gap-2 py-6 text-xs sm:flex-row sm:items-center sm:justify-between">
           <span>
-            © {new Date().getFullYear()} {siteName}. Todos los derechos
-            reservados.
+            {dict.footer.rights(new Date().getFullYear(), siteName)}
           </span>
           <span className="eyebrow text-paper/30">{t("footer.madeIn")}</span>
         </div>

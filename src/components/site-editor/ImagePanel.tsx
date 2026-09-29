@@ -142,18 +142,27 @@ export function ImagePanel({
         className="hidden"
         onChange={(e) => onFile(e.target.files?.[0])}
       />
-      <p className="mt-1.5 text-xs text-neutral-500">JPG, PNG, WEBP o AVIF, hasta 10 MB.</p>
+      <p className="mt-1.5 text-xs text-neutral-500">
+        JPG, PNG, WEBP o AVIF, hasta 10 MB. La foto y el encuadre son los mismos en español e
+        inglés.
+      </p>
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
 
       <label className="mt-4 block">
         <span className="mb-1.5 block text-xs font-medium text-neutral-600">
-          Descripción de la foto (la leen Google y los lectores de pantalla)
+          Descripción de la foto {editor.lang === "en" ? "en inglés" : "en español"} (la leen
+          Google y los lectores de pantalla)
         </span>
         <textarea
           value={image.alt}
           maxLength={200}
           rows={2}
-          onChange={(e) => editor.updateImage(field, { alt: e.target.value })}
+          onChange={(e) =>
+            editor.updateImage(
+              field,
+              editor.lang === "en" ? { altEn: e.target.value } : { alt: e.target.value },
+            )
+          }
           className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
         />
       </label>

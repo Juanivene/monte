@@ -34,6 +34,7 @@ const imageOverrideSchema = z
     width: z.number().int().positive().max(20000).optional(),
     height: z.number().int().positive().max(20000).optional(),
     alt: z.string().trim().max(200, "La descripción supera los 200 caracteres").optional(),
+    altEn: z.string().trim().max(200, "La descripción supera los 200 caracteres").optional(),
     x: percent.optional(),
     y: percent.optional(),
   })
@@ -42,8 +43,13 @@ const imageOverrideSchema = z
 const textKeys = Object.keys(TEXT_FIELDS) as TextField[];
 const imageKeys = Object.keys(IMAGE_FIELDS) as ImageField[];
 
+const textGroupSchema = z
+  .strictObject(Object.fromEntries(textKeys.map((k) => [k, textSchema(k).optional()])))
+  .optional();
+
 const overridesSchema = z.object({
-  text: z.strictObject(Object.fromEntries(textKeys.map((k) => [k, textSchema(k).optional()]))).optional(),
+  text: textGroupSchema,
+  textEn: textGroupSchema,
   image: z
     .strictObject(Object.fromEntries(imageKeys.map((k) => [k, imageOverrideSchema.optional()])))
     .optional(),
@@ -60,10 +66,23 @@ export function validateOverrides(
     const label =
       typeof field === "string" && field in IMAGE_FIELDS
         ? `${IMAGE_FIELDS[field as ImageField].label}: `
-        : "";
+        : issue?.path[0] === "textEn"
+          ? "Inglés: "
+          : "";
     return { ok: false, error: `${label}${issue?.message ?? "Contenido inválido"}` };
   }
   return { ok: true, data: parsed.data as ContentOverrides };
+}
+
+function parseTextGroup(raw: unknown): Partial<Record<TextField, string>> | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  let result: Partial<Record<TextField, string>> | undefined;
+  for (const [key, value] of Object.entries(raw)) {
+    if (!(key in TEXT_FIELDS)) continue;
+    const parsed = textSchema(key as TextField).safeParse(value);
+    if (parsed.success) (result ??= {})[key as TextField] = parsed.data;
+  }
+  return result;
 }
 
 /**
@@ -72,16 +91,13 @@ export function validateOverrides(
  */
 export function parseOverrides(raw: unknown): ContentOverrides {
   if (!raw || typeof raw !== "object") return {};
-  const { text, image } = raw as { text?: unknown; image?: unknown };
+  const { text, textEn, image } = raw as { text?: unknown; textEn?: unknown; image?: unknown };
   const result: ContentOverrides = {};
 
-  if (text && typeof text === "object") {
-    for (const [key, value] of Object.entries(text)) {
-      if (!(key in TEXT_FIELDS)) continue;
-      const parsed = textSchema(key as TextField).safeParse(value);
-      if (parsed.success) (result.text ??= {})[key as TextField] = parsed.data;
-    }
-  }
+  const es = parseTextGroup(text);
+  if (es) result.text = es;
+  const en = parseTextGroup(textEn);
+  if (en) result.textEn = en;
 
   if (image && typeof image === "object") {
     for (const [key, value] of Object.entries(image)) {

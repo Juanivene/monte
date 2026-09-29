@@ -1,25 +1,31 @@
 import type { StaticImageData } from "next/image";
 import { shots, type Shot } from "@/lib/lookbook";
+import type { Locale } from "@/i18n/config";
 
 /**
  * Contenido editable del home (textos y fotos) desde /admin/preview.
  *
- * Los valores por defecto viven acá, en el código, y son exactamente lo que
- * la tienda mostraba antes de que existiera el editor. En la base
- * (modelo SiteContent) solo se guardan los cambios: si la fila no existe, si
- * la base no responde o si un valor guardado no es válido, ese campo vuelve
- * a su default. Así la home nunca queda vacía ni rota.
+ * Los valores por defecto viven acá, en el código, en los dos idiomas. En la
+ * base (modelo SiteContent) solo se guardan los cambios: si la fila no
+ * existe, si la base no responde o si un valor guardado no es válido, ese
+ * campo vuelve a su default. Así la home nunca queda vacía ni rota.
+ *
+ * Los textos se editan por idioma. Las fotos y su encuadre son los mismos en
+ * los dos; solo la descripción (alt) va por idioma.
  *
  * Este archivo lo importan también componentes de cliente, así que no puede
  * traer nada de servidor (ni zod: la validación está en validation.ts).
  */
 
 type TextSpec = {
+  /** Default en español (el original). */
   default: string;
+  /** Default en inglés. */
+  en: string;
   max: number;
   /** Permite Enter (salto de línea). Si no, Enter confirma la edición. */
   multiline?: boolean;
-  /** Es una URL (se valida como tal). */
+  /** Es una URL: se valida como tal y es la misma en los dos idiomas. */
   url?: boolean;
 };
 
@@ -33,100 +39,147 @@ type ImageSpec = {
 
 export const TEXT_FIELDS = {
   // Hero
-  "hero.eyebrow": { default: "Colección 01 · 2026", max: 60 },
-  "hero.title": { default: "El monte\nestá en la\n*ciudad*", max: 80, multiline: true },
+  "hero.eyebrow": { default: "Colección 01 · 2026", en: "Collection 01 · 2026", max: 60 },
+  "hero.title": {
+    default: "El monte\nestá en la\n*ciudad*",
+    en: "The wild\nlives in the\n*city*",
+    max: 80,
+    multiline: true,
+  },
   "hero.body": {
     default:
       "Prendas y accesorios agénero de diseño independiente. Con base en Miami y visión de expansión global, trabajamos en tiradas cortas y con materiales naturales, reduciendo nuestra huella ambiental.",
+    en: "Genderless clothing and accessories of independent design. Based in Miami with a global outlook, we work in small batches with natural materials, reducing our environmental footprint.",
     max: 400,
     multiline: true,
   },
-  "hero.ctaPrimary": { default: "Ver colección", max: 30 },
-  "hero.ctaSecondary": { default: "Lookbook", max: 30 },
-  "hero.stat1Label": { default: "Prendas activas", max: 30 },
-  "hero.stat2Value": { default: "24h", max: 8 },
-  "hero.stat2Label": { default: "Despacho", max: 30 },
-  "hero.stat3Value": { default: "30d", max: 8 },
-  "hero.stat3Label": { default: "Para cambios", max: 30 },
-  "hero.side": { default: "Miami · 2026", max: 40 },
+  "hero.ctaPrimary": { default: "Ver colección", en: "Shop the collection", max: 30 },
+  "hero.ctaSecondary": { default: "Lookbook", en: "Lookbook", max: 30 },
+  "hero.stat1Label": { default: "Prendas activas", en: "Pieces available", max: 30 },
+  "hero.stat2Value": { default: "24h", en: "24h", max: 8 },
+  "hero.stat2Label": { default: "Despacho", en: "Dispatch", max: 30 },
+  "hero.stat3Value": { default: "30d", en: "30d", max: 8 },
+  "hero.stat3Label": { default: "Para cambios", en: "For exchanges", max: 30 },
+  "hero.side": { default: "Miami · 2026", en: "Miami · 2026", max: 40 },
 
   // Sobre Monte
-  "story.eyebrow": { default: "Sobre Monte", max: 60 },
-  "story.title": { default: "Poca cantidad,\nmucha prenda", max: 80, multiline: true },
+  "story.eyebrow": { default: "Sobre Monte", en: "About Monte", max: 60 },
+  "story.title": {
+    default: "Poca cantidad,\nmucha prenda",
+    en: "Small batches,\nserious pieces",
+    max: 80,
+    multiline: true,
+  },
   "story.p1": {
     default:
       "Monte nació entre las montañas de nuestros valles Tucumanos y terminó de tomar forma en la costa. De ahí salen los colores:  el verde del monte, el azul del agua y la arena.",
+    en: "Monte was born among the mountains of our valleys in Tucumán and took its final shape on the coast. That's where our colors come from: the green of the hills, the blue of the water and the sand.",
     max: 600,
     multiline: true,
   },
   "story.p2": {
     default:
       "Cortamos y cosemos en talleres locales. Cada diseño se produce en tiradas cortas, con telas pesadas y moldería oversize pensada para durar más de una temporada.",
+    en: "We cut and sew in local workshops. Each design is made in a short run, with heavyweight fabrics and oversized patterns built to last more than one season.",
     max: 600,
     multiline: true,
   },
-  "story.fact1Title": { default: "Frisa 400g", max: 40 },
-  "story.fact1Detail": { default: "Algodón peinado", max: 60 },
-  "story.fact2Title": { default: "Moldería oversize", max: 40 },
-  "story.fact2Detail": { default: "Del XS al XXL", max: 60 },
-  "story.fact3Title": { default: "Ojales metálicos", max: 40 },
-  "story.fact3Detail": { default: "Aplicados a mano", max: 60 },
+  "story.fact1Title": { default: "Frisa 400g", en: "400g fleece", max: 40 },
+  "story.fact1Detail": { default: "Algodón peinado", en: "Combed cotton", max: 60 },
+  "story.fact2Title": { default: "Moldería oversize", en: "Oversized fit", max: 40 },
+  "story.fact2Detail": { default: "Del XS al XXL", en: "From XS to XXL", max: 60 },
+  "story.fact3Title": { default: "Ojales metálicos", en: "Metal eyelets", max: 40 },
+  "story.fact3Detail": { default: "Aplicados a mano", en: "Set by hand", max: 60 },
 
   // Lookbook
-  "lookbook.eyebrow": { default: "Lookbook", max: 60 },
-  "lookbook.title": { default: "De la torre\na la orilla", max: 80, multiline: true },
+  "lookbook.eyebrow": { default: "Lookbook", en: "Lookbook", max: 60 },
+  "lookbook.title": {
+    default: "De la torre\na la orilla",
+    en: "From the tower\nto the shore",
+    max: 80,
+    multiline: true,
+  },
   "lookbook.body": {
     default:
       "Las mismas prendas en hormigón porteño y en arena. Deslizá para ver toda la temporada.",
+    en: "The same pieces on Buenos Aires concrete and on the sand. Swipe to see the whole season.",
     max: 300,
     multiline: true,
   },
 
   // Beneficios
-  "values.1Title": { default: "Envíos a todo el país", max: 50 },
+  "values.1Title": { default: "Envíos a todo el país", en: "Nationwide shipping", max: 50 },
   "values.1Detail": {
     default: "Despachamos dentro de las 24 h hábiles por correo o moto en CABA.",
+    en: "We ship within 24 business hours by mail, or by motorbike within Buenos Aires City.",
     max: 200,
     multiline: true,
   },
-  "values.2Title": { default: "Cambios sin vueltas", max: 50 },
+  "values.2Title": { default: "Cambios sin vueltas", en: "Easy exchanges", max: 50 },
   "values.2Detail": {
     default: "Tenés 30 días para cambiar el talle, siempre que la prenda esté sin uso.",
+    en: "You have 30 days to exchange your size, as long as the piece is unworn.",
     max: 200,
     multiline: true,
   },
-  "values.3Title": { default: "Tiradas cortas", max: 50 },
+  "values.3Title": { default: "Tiradas cortas", en: "Small batches", max: 50 },
   "values.3Detail": {
     default: "Producimos poco de cada diseño. Lo que se agota rara vez vuelve.",
+    en: "We make just a few of each design. What sells out rarely comes back.",
     max: 200,
     multiline: true,
   },
-  "values.4Title": { default: "Te asesoramos", max: 50 },
+  "values.4Title": { default: "Te asesoramos", en: "We're here to help", max: 50 },
   "values.4Detail": {
     default: "Si dudás con el talle, escribinos y lo vemos juntos antes de comprar.",
+    en: "Not sure about your size? Message us and we'll figure it out together before you buy.",
     max: 200,
     multiline: true,
   },
   "values.whatsappText": {
     default: "¿Alguna duda antes de comprar? Estamos del otro lado.",
+    en: "Any questions before you buy? We're right here.",
     max: 150,
   },
-  "values.whatsappCta": { default: "Escribinos por WhatsApp →", max: 40 },
+  "values.whatsappCta": {
+    default: "Escribinos por WhatsApp →",
+    en: "Message us on WhatsApp →",
+    max: 40,
+  },
 
   // Footer
-  "footer.eyebrow": { default: "Tucumán · Argentina", max: 60 },
-  "footer.claim": { default: "Tiradas cortas,\nhechas para largo usos", max: 80, multiline: true },
+  "footer.eyebrow": { default: "Tucumán · Argentina", en: "Tucumán · Argentina", max: 60 },
+  "footer.claim": {
+    default: "Tiradas cortas,\nhechas para largo usos",
+    en: "Small batches,\nmade to last",
+    max: 80,
+    multiline: true,
+  },
   "footer.brand": {
     default:
       "Indumentaria de diseño independiente. Cada prenda sale en cantidades chicas: cuando se agota, se agota.",
+    en: "Independent design clothing. Every piece is made in small numbers: once it's gone, it's gone.",
     max: 300,
     multiline: true,
   },
-  "footer.help1": { default: "Envíos a todo el país", max: 60 },
-  "footer.help2": { default: "Cambios dentro de los 30 días", max: 60 },
-  "footer.help3": { default: "Pago coordinado por WhatsApp", max: 60 },
-  "footer.instagram": { default: "https://instagram.com/monteclub.arg", max: 200, url: true },
-  "footer.madeIn": { default: "Made In Tucumán", max: 40 },
+  "footer.help1": { default: "Envíos a todo el país", en: "Shipping across Argentina", max: 60 },
+  "footer.help2": {
+    default: "Cambios dentro de los 30 días",
+    en: "Exchanges within 30 days",
+    max: 60,
+  },
+  "footer.help3": {
+    default: "Pago coordinado por WhatsApp",
+    en: "Payment arranged over WhatsApp",
+    max: 60,
+  },
+  "footer.instagram": {
+    default: "https://instagram.com/monteclub.arg",
+    en: "https://instagram.com/monteclub.arg",
+    max: 200,
+    url: true,
+  },
+  "footer.madeIn": { default: "Made In Tucumán", en: "Made in Tucumán", max: 40 },
 } as const satisfies Record<string, TextSpec>;
 
 export const IMAGE_FIELDS = {
@@ -166,15 +219,32 @@ export function imageSpec(field: ImageField): ImageSpec {
   return IMAGE_FIELDS[field];
 }
 
+/** Texto por defecto de un campo en un idioma. */
+export function defaultText(field: TextField, lang: Locale): string {
+  const spec: TextSpec = TEXT_FIELDS[field];
+  return lang === "en" ? spec.en : spec.default;
+}
+
 /**
- * Lo que se guarda de una foto: una foto nueva (url + medidas), otro texto
- * alternativo y/o otro punto de encuadre. Lo que falte sale del default.
+ * Dónde se guarda un texto editado: `text` (español) o `textEn`. Las URLs
+ * son las mismas en los dos idiomas y van siempre en `text`.
+ */
+export function textKeyFor(field: TextField, lang: Locale): "text" | "textEn" {
+  const spec: TextSpec = TEXT_FIELDS[field];
+  return lang === "en" && !spec.url ? "textEn" : "text";
+}
+
+/**
+ * Lo que se guarda de una foto: una foto nueva (url + medidas), otra
+ * descripción (por idioma) y/o otro punto de encuadre. Lo que falte sale del
+ * default.
  */
 export type ImageOverride = {
   url?: string;
   width?: number;
   height?: number;
   alt?: string;
+  altEn?: string;
   x?: number;
   y?: number;
 };
@@ -182,6 +252,7 @@ export type ImageOverride = {
 /** Solo los campos que difieren del default. Es lo que va en la base. */
 export type ContentOverrides = {
   text?: Partial<Record<TextField, string>>;
+  textEn?: Partial<Record<TextField, string>>;
   image?: Partial<Record<ImageField, ImageOverride>>;
 };
 
@@ -199,29 +270,35 @@ export type SiteContent = {
   image: Record<ImageField, ResolvedImage>;
 };
 
-/** Combina los cambios (ya validados) con los defaults. */
-export function resolveContent(overrides: ContentOverrides): SiteContent {
+/** Combina los cambios (ya validados) con los defaults del idioma. */
+export function resolveContent(overrides: ContentOverrides, lang: Locale): SiteContent {
   const text = {} as Record<TextField, string>;
   for (const field of TEXT_FIELD_KEYS) {
-    text[field] = overrides.text?.[field] ?? TEXT_FIELDS[field].default;
+    text[field] = overrides[textKeyFor(field, lang)]?.[field] ?? defaultText(field, lang);
   }
 
   const image = {} as Record<ImageField, ResolvedImage>;
   for (const field of IMAGE_FIELD_KEYS) {
-    image[field] = resolveImage(field, overrides.image?.[field]);
+    image[field] = resolveImage(field, overrides.image?.[field], lang);
   }
 
   return { text, image };
 }
 
-export function resolveImage(field: ImageField, override?: ImageOverride): ResolvedImage {
+export function resolveImage(
+  field: ImageField,
+  override: ImageOverride | undefined,
+  lang: Locale,
+): ResolvedImage {
   const spec: ImageSpec = IMAGE_FIELDS[field];
   const hasUpload = Boolean(override?.url && override.width && override.height);
+  const alt =
+    lang === "en" ? (override?.altEn ?? spec.default.altEn) : (override?.alt ?? spec.default.alt);
   return {
     src: hasUpload ? override!.url! : spec.default.src,
     width: hasUpload ? override!.width! : spec.default.src.width,
     height: hasUpload ? override!.height! : spec.default.src.height,
-    alt: override?.alt ?? spec.default.alt,
+    alt,
     x: override?.x ?? spec.x ?? 50,
     y: override?.y ?? spec.y ?? 50,
   };

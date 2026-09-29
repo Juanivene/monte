@@ -1,5 +1,6 @@
 import { Column, Row, Section, Text } from "@react-email/components";
 import { formatPrice } from "@/lib/money";
+import { getDictionary, type Locale } from "@/i18n";
 
 export type EmailOrderItem = {
   productName: string;
@@ -9,31 +10,44 @@ export type EmailOrderItem = {
   unitPrice: number;
 };
 
-export function ItemsTable({ items, total }: { items: EmailOrderItem[]; total: number }) {
+export function ItemsTable({
+  items,
+  total,
+  lang = "es",
+}: {
+  items: EmailOrderItem[];
+  total: number;
+  /** El mail al admin va siempre en español; el del comprador, en su idioma. */
+  lang?: Locale;
+}) {
+  const t = getDictionary(lang).emails;
   return (
     <Section style={{ marginTop: 16, marginBottom: 16 }}>
       {items.map((item, idx) => (
         <Row key={idx} style={{ paddingBottom: 8 }}>
           <Column>
             <Text style={{ margin: 0, fontSize: 14 }}>
-              {item.quantity}x {item.productName}
-              {item.colorName ? ` (${item.colorName})` : ""} — Talle {item.size}
+              {t.itemLine(
+                item.quantity,
+                `${item.productName}${item.colorName ? ` (${item.colorName})` : ""}`,
+                item.size,
+              )}
             </Text>
           </Column>
           <Column align="right">
             <Text style={{ margin: 0, fontSize: 14 }}>
-              {formatPrice(item.unitPrice * item.quantity)}
+              {formatPrice(item.unitPrice * item.quantity, lang)}
             </Text>
           </Column>
         </Row>
       ))}
       <Row style={{ borderTop: "1px solid #e5e5e5", paddingTop: 8, marginTop: 8 }}>
         <Column>
-          <Text style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>Total</Text>
+          <Text style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>{t.total}</Text>
         </Column>
         <Column align="right">
           <Text style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>
-            {formatPrice(total)}
+            {formatPrice(total, lang)}
           </Text>
         </Column>
       </Row>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useI18n } from "@/i18n/client";
 
 export function ProductGallery({
   images,
@@ -10,12 +11,13 @@ export function ProductGallery({
   images: { url: string }[];
   alt: string;
 }) {
+  const { t } = useI18n();
   const [active, setActive] = useState(0);
 
   if (images.length === 0) {
     return (
       <div className="bg-bone-dark text-ink-muted flex aspect-4/5 items-center justify-center text-xs">
-        Sin imagen
+        {t.card.noImage}
       </div>
     );
   }
@@ -61,7 +63,7 @@ export function ProductGallery({
               key={img.url}
               type="button"
               onClick={() => setActive(i)}
-              aria-label={`Ver imagen ${i + 1}`}
+              aria-label={t.product.viewImage(i + 1)}
               aria-pressed={i === active}
               className={`bg-bone-dark relative aspect-4/5 w-16 shrink-0 overflow-hidden transition-opacity lg:w-full ${
                 i === active ? "opacity-100" : "opacity-55 hover:opacity-100"
@@ -88,12 +90,13 @@ function GalleryArrow({
   direction: "prev" | "next";
   onClick: () => void;
 }) {
+  const { t } = useI18n();
   const isPrev = direction === "prev";
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={isPrev ? "Imagen anterior" : "Imagen siguiente"}
+      aria-label={isPrev ? t.product.prevImage : t.product.nextImage}
       className={`bg-bone/85 text-ink absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center opacity-0 backdrop-blur-sm transition-opacity duration-300 hover:bg-bone focus-visible:opacity-100 group-hover:opacity-100 ${
         isPrev ? "left-3" : "right-3"
       }`}

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart-context";
+import { useI18n } from "@/i18n/client";
+import { localePath, pick } from "@/i18n";
 import { Button } from "@/components/ui/Button";
 import { SIZES, type Size } from "@/types";
 
@@ -12,7 +14,9 @@ export type AddToCartProduct = {
   id: string;
   slug: string;
   name: string;
+  nameEn: string | null;
   colorName: string | null;
+  colorNameEn: string | null;
   price: number;
   images: { url: string }[];
   variants: { size: Size; stock: number }[];
@@ -20,6 +24,7 @@ export type AddToCartProduct = {
 
 export function AddToCartForm({ product }: { product: AddToCartProduct }) {
   const { addItem } = useCart();
+  const { lang, t } = useI18n();
   const router = useRouter();
   const [size, setSize] = useState<Size | null>(null);
 
@@ -30,32 +35,37 @@ export function AddToCartForm({ product }: { product: AddToCartProduct }) {
   function handleAdd() {
     if (!size) return;
 
+    // Se guardan los dos idiomas: si el cliente cambia de idioma, el carrito también.
     addItem({
       productId: product.id,
       productName: product.name,
+      productNameEn: product.nameEn,
       slug: product.slug,
       image: product.images[0]?.url ?? null,
       colorName: product.colorName,
+      colorNameEn: product.colorNameEn,
       price: product.price,
       size,
       quantity: 1,
       maxStock: stockBySize.get(size) ?? 0,
     });
 
-    toast.success("Agregado al carrito", {
-      description: `${product.name}${product.colorName ? ` · ${product.colorName}` : ""} — Talle ${size}`,
-      action: { label: "Ver carrito", onClick: () => router.push("/carrito") },
+    const name = pick(lang, product.name, product.nameEn);
+    const color = pick(lang, product.colorName, product.colorNameEn);
+    toast.success(t.addToCart.added, {
+      description: `${name}${color ? ` · ${color}` : ""} — ${t.size.withSize(size)}`,
+      action: {
+        label: t.addToCart.viewCart,
+        onClick: () => router.push(localePath(lang, "/carrito")),
+      },
     });
   }
 
   if (!hasAnyStock) {
     return (
       <div className="border-ink/12 border px-5 py-4">
-        <p className="eyebrow text-ink">Agotado</p>
-        <p className="text-ink-muted mt-2 text-sm">
-          Esta prenda salió en tirada corta y ya no quedan unidades. Escribinos si querés que te
-          avisemos cuando vuelva.
-        </p>
+        <p className="eyebrow text-ink">{t.addToCart.soldOutTitle}</p>
+        <p className="text-ink-muted mt-2 text-sm">{t.addToCart.soldOutBody}</p>
       </div>
     );
   }
@@ -63,8 +73,8 @@ export function AddToCartForm({ product }: { product: AddToCartProduct }) {
   return (
     <div>
       <div className="flex items-baseline justify-between gap-4">
-        <p className="eyebrow text-ink-muted">Talle</p>
-        <p className="text-ink-muted text-xs">Moldería oversize</p>
+        <p className="eyebrow text-ink-muted">{t.size.label}</p>
+        <p className="text-ink-muted text-xs">{t.addToCart.oversize}</p>
       </div>
 
       <div className="mt-3 grid grid-cols-6 gap-2">
@@ -102,10 +112,10 @@ export function AddToCartForm({ product }: { product: AddToCartProduct }) {
 
       <p className="text-ink-muted mt-3 h-4 text-xs">
         {!size
-          ? "Elegí un talle para continuar."
+          ? t.addToCart.chooseSize
           : selectedStock <= 3
-            ? `Quedan ${selectedStock} ${selectedStock === 1 ? "unidad" : "unidades"} en ${size}.`
-            : `Disponible en ${size}.`}
+            ? t.addToCart.unitsLeft(selectedStock, size)
+            : t.addToCart.available(size)}
       </p>
 
       <Button
@@ -115,7 +125,7 @@ export function AddToCartForm({ product }: { product: AddToCartProduct }) {
         size="lg"
         className="mt-5 w-full"
       >
-        Agregar al carrito
+        {t.addToCart.add}
       </Button>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/i18n/client";
 import { useTheme } from "next-themes";
 import { useHydrated } from "@/lib/use-hydrated";
 
@@ -15,6 +16,7 @@ import { useHydrated } from "@/lib/use-hydrated";
  */
 export function ThemeToggle({ className = "" }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
+  const { t } = useI18n();
   const mounted = useHydrated();
 
   const isDark = mounted && resolvedTheme === "dark";
@@ -23,8 +25,8 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     <button
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-      title={isDark ? "Modo claro" : "Modo oscuro"}
+      aria-label={isDark ? t.theme.toLight : t.theme.toDark}
+      title={isDark ? t.theme.toLight : t.theme.toDark}
       className={`border-ink/15 hover:border-ink flex h-10 w-10 shrink-0 items-center justify-center border transition-colors ${className}`}
     >
       {mounted && (

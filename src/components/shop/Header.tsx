@@ -5,6 +5,9 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useI18n } from "@/i18n/client";
+import { localePath } from "@/i18n/config";
+import { LanguageSwitcher } from "@/components/shop/LanguageSwitcher";
 
 export type HeaderCategory = { slug: string; name: string };
 
@@ -12,12 +15,14 @@ const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Monte";
 
 export function Header({ categories }: { categories: HeaderCategory[] }) {
   const { itemCount, isHydrated } = useCart();
+  const { lang, t } = useI18n();
+  const home = localePath(lang, "/");
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const activeCategory = pathname === "/" ? searchParams.get("categoria") : null;
+  const activeCategory = pathname === home ? searchParams.get("categoria") : null;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -62,8 +67,8 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
           >
             {/* Wordmark */}
             <Link
-              href="/"
-              aria-label={`${siteName} — inicio`}
+              href={home}
+              aria-label={t.header.home(siteName)}
               className="headline text-ink text-xl leading-none sm:text-2xl"
             >
               {siteName}
@@ -79,16 +84,16 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
                 al elegir una categoría.
               */}
               <Link
-                href="/#catalogo"
-                data-active={pathname === "/" && !activeCategory}
+                href={localePath(lang, "/#catalogo")}
+                data-active={pathname === home && !activeCategory}
                 className="link-underline text-ink-soft hover:text-ink text-[0.8rem] font-medium tracking-wide transition-colors"
               >
-                Todo
+                {t.header.all}
               </Link>
               {categories.map((category) => (
                 <Link
                   key={category.slug}
-                  href={`/?categoria=${category.slug}#catalogo`}
+                  href={localePath(lang, `/?categoria=${category.slug}#catalogo`)}
                   data-active={activeCategory === category.slug}
                   className="link-underline text-ink-soft hover:text-ink text-[0.8rem] font-medium tracking-wide transition-colors"
                 >
@@ -96,22 +101,27 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
                 </Link>
               ))}
               <Link
-                href="/#lookbook"
+                href={localePath(lang, "/#lookbook")}
                 className="link-underline text-ink-soft hover:text-ink text-[0.8rem] font-medium tracking-wide transition-colors"
               >
-                Lookbook
+                {t.header.lookbook}
               </Link>
             </nav>
   
             <div className="flex items-center gap-2 sm:gap-4">
+              <LanguageSwitcher />
               <ThemeToggle />
-              <CartLink itemCount={isHydrated ? itemCount : 0} />
+              <CartLink
+                href={localePath(lang, "/carrito")}
+                label={t.header.cart}
+                itemCount={isHydrated ? itemCount : 0}
+              />
   
               <button
                 type="button"
                 onClick={() => setMenuOpen((open) => !open)}
                 aria-expanded={menuOpen}
-                aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+                aria-label={menuOpen ? t.header.closeMenu : t.header.openMenu}
                 className="border-ink/15 hover:border-ink flex h-10 w-10 items-center justify-center border transition-colors lg:hidden"
               >
                 <span className="relative block h-3 w-4">
@@ -147,13 +157,13 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
       >
         <nav className="container-page flex flex-col gap-1 pb-16 pt-28">
           {[
-            { href: "/#catalogo", label: "Todo" },
+            { href: localePath(lang, "/#catalogo"), label: t.header.all },
             ...categories.map((category) => ({
-              href: `/?categoria=${category.slug}#catalogo`,
+              href: localePath(lang, `/?categoria=${category.slug}#catalogo`),
               label: category.name,
             })),
-            { href: "/#lookbook", label: "Lookbook" },
-            { href: "/carrito", label: "Carrito" },
+            { href: localePath(lang, "/#lookbook"), label: t.header.lookbook },
+            { href: localePath(lang, "/carrito"), label: t.header.cart },
           ].map((item, i) => (
             <MobileLink
               key={item.href}
@@ -198,10 +208,10 @@ function MobileLink({
   );
 }
 
-function CartLink({ itemCount }: { itemCount: number }) {
+function CartLink({ href, label, itemCount }: { href: string; label: string; itemCount: number }) {
   return (
     <Link
-      href="/carrito"
+      href={href}
       className="group border-ink/15 hover:border-ink relative flex items-center gap-2.5 border px-3.5 py-2.5 transition-colors sm:px-4"
     >
       <svg
@@ -215,7 +225,7 @@ function CartLink({ itemCount }: { itemCount: number }) {
         <path d="M4 7h16l-1.2 12.2a1 1 0 0 1-1 .9H6.2a1 1 0 0 1-1-.9L4 7Z" />
         <path d="M9 7V5.5a3 3 0 0 1 6 0V7" />
       </svg>
-      <span className="eyebrow hidden sm:inline">Carrito</span>
+      <span className="eyebrow hidden sm:inline">{label}</span>
       {/*
         Renderizado condicional, no solo escalado a 0: con scale-0 el span
         seguía ocupando su ancho + el gap del flex aunque fuera invisible,

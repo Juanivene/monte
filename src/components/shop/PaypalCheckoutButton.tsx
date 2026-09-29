@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import type { CheckoutInput } from "@/lib/validations";
 import { Button } from "@/components/ui/Button";
+import { useI18n } from "@/i18n/client";
 //todo remover
 import { MOCK_MODE } from "@/lib/mock/config";
 
@@ -22,14 +23,16 @@ export function PaypalCheckoutButton({
   onSuccess: (orderId: string) => void;
   onError: (message: string) => void;
 }) {
+  const { t } = useI18n();
+
   async function createOrder(): Promise<string> {
     const res = await fetch("/api/paypal/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: buyerData.items }),
+      body: JSON.stringify({ items: buyerData.items, locale: buyerData.locale }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? "No se pudo iniciar el pago");
+    if (!res.ok) throw new Error(data.error ?? t.errors.paypalStart);
     return data.paypalOrderId as string;
   }
 
@@ -44,7 +47,7 @@ export function PaypalCheckoutButton({
       // Si la tarjeta fue rechazada no usamos actions.restart(): con los campos
       // de tarjeta inline dispara el onError del SDK y abre un modal extra.
       // El comprador reintenta con el botón, que crea una orden nueva.
-      onError(result.error ?? "No se pudo confirmar el pago");
+      onError(result.error ?? t.errors.paypalConfirm);
       return;
     }
     onSuccess(result.orderId as string);
@@ -62,7 +65,7 @@ export function PaypalCheckoutButton({
             await approveOrder(paypalOrderId);
           } catch (err) {
             onError(
-              err instanceof Error ? err.message : "Error simulando el pago",
+              err instanceof Error ? err.message : t.errors.paypalGeneric,
             );
           }
         }}
@@ -85,7 +88,7 @@ export function PaypalCheckoutButton({
         createOrder={createOrder}
         onApprove={async (data) => approveOrder(data.orderID)}
         onError={() => {
-          onError("Ocurrió un error con PayPal. Probá de nuevo.");
+          onError(t.errors.paypalGeneric);
         }}
       />
     </PayPalScriptProvider>
@@ -93,6 +96,7 @@ export function PaypalCheckoutButton({
 }
 
 function MockPaypalButton({ onPay }: { onPay: () => Promise<void> }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
 
   return (
@@ -107,7 +111,7 @@ function MockPaypalButton({ onPay }: { onPay: () => Promise<void> }) {
         setLoading(false);
       }}
     >
-      {loading ? "Procesando pago simulado..." : "Pagar con PayPal (modo mock)"}
+      {loading ? t.errors.mockPaying : t.errors.mockPay}
     </Button>
   );
 }

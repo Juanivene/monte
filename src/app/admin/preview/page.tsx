@@ -5,6 +5,8 @@ import { Toaster } from "sonner";
 import { prisma } from "@/lib/prisma";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { getSession } from "@/lib/session";
+import { hasLocale, pick } from "@/i18n";
+import { LocaleProvider } from "@/i18n/client";
 import { resolveContent } from "@/lib/site-content/fields";
 import { getEditableContent } from "@/lib/site-content/get";
 import { AnnouncementBar } from "@/components/shop/AnnouncementBar";
@@ -24,43 +26,56 @@ export const metadata: Metadata = {
  * lugar. Queda fuera de (protegido) para no heredar el ancho acotado del
  * admin (la barra del admin sí se muestra, arriba de la tienda). El proxy
  * (matcher /admin/:path*) la protege igual; el chequeo de acá es por las dudas.
+ *
+ * ?lang=en muestra (y edita) la versión en inglés; por defecto, español.
  */
-export default async function PreviewPage() {
+export default async function PreviewPage({ searchParams }: PageProps<"/admin/preview">) {
   const session = await getSession();
   if (!session) redirect("/admin/login");
+
+  const { lang: rawLang } = await searchParams;
+  const lang = typeof rawLang === "string" && hasLocale(rawLang) ? rawLang : "es";
 
   const [categories, stored] = await Promise.all([
     prisma.category.findMany({
       orderBy: { name: "asc" },
-      select: { slug: true, name: true },
+      select: { slug: true, name: true, nameEn: true },
     }),
     getEditableContent(),
   ]);
-  const content = resolveContent(stored.draft);
+  const localizedCategories = categories.map((c) => ({
+    slug: c.slug,
+    name: pick(lang, c.name, c.nameEn),
+  }));
+  const content = resolveContent(stored.draft, lang);
 
   return (
     <div className="bg-bone text-ink flex min-h-screen flex-col">
       <SiteEditorProvider
+        lang={lang}
         initialDraft={stored.draft}
         initialPublished={stored.published}
         dbOk={stored.ok}
       >
         <AdminNav email={session.email} />
-        <AnnouncementBar />
-        {/*
-          El wrapper mide lo mismo que el header, así su `sticky` no tiene
-          recorrido: si se pegara arriba taparía la barra del admin, que es la
-          que tiene que quedar siempre a mano.
-        */}
-        <div>
-          <Suspense fallback={<div className="h-18" />}>
-            <Header categories={categories} />
-          </Suspense>
-        </div>
-        <main className="flex-1">
-          <HomeView content={content} />
-        </main>
-        <Footer categories={categories} content={content} />
+        {/* Solo la tienda va en el idioma elegido: la barra del admin sigue en español. */}
+        <LocaleProvider lang={lang}>
+          <AnnouncementBar lang={lang} />
+          {/*
+            El wrapper mide lo mismo que el header, así su `sticky` no tiene
+            recorrido: si se pegara arriba taparía la barra del admin, que es la
+            que tiene que quedar siempre a mano.
+          */}
+          <div>
+            <Suspense fallback={<div className="h-18" />}>
+              <Header categories={localizedCategories} />
+            </Suspense>
+          </div>
+          <main className="flex-1">
+            <HomeView lang={lang} content={content} />
+          </main>
+          <Footer lang={lang} categories={localizedCategories} content={content} />
+        </LocaleProvider>
       </SiteEditorProvider>
       <Toaster
         position="top-center"

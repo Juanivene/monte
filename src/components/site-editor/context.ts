@@ -7,8 +7,11 @@ import type {
   SiteContent,
   TextField,
 } from "@/lib/site-content/fields";
+import type { Locale } from "@/i18n/config";
 
 export type SiteEditorApi = {
+  /** Idioma que se está editando. */
+  lang: Locale;
   /** Contenido en vivo (borrador + defaults), lo que se ve en la preview. */
   content: SiteContent;
   /** Mostrar los recuadros punteados y botones de edición. */

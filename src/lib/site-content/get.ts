@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
+import type { Locale } from "@/i18n/config";
 import { resolveContent, type ContentOverrides, type SiteContent } from "./fields";
 import { parseOverrides } from "./validation";
 
@@ -8,21 +9,21 @@ import { parseOverrides } from "./validation";
 export const HOME_CONTENT_KEY = "home";
 
 /**
- * Contenido publicado del home, para la tienda. Si la base falla (o la tabla
+ * Contenido publicado del home en un idioma, para la tienda. Si la base falla (o la tabla
  * todavía no existe) se muestra el contenido por defecto en vez de romper la
  * página. `cache` para que el layout (footer) y la página compartan la
  * consulta dentro del mismo request.
  */
-export const getPublishedContent = cache(async (): Promise<SiteContent> => {
+export const getPublishedContent = cache(async (lang: Locale): Promise<SiteContent> => {
   try {
     const row = await prisma.siteContent.findUnique({
       where: { key: HOME_CONTENT_KEY },
       select: { published: true },
     });
-    return resolveContent(parseOverrides(row?.published));
+    return resolveContent(parseOverrides(row?.published), lang);
   } catch (error) {
     console.error("[site-content] no se pudo leer el contenido, se muestra el default", error);
-    return resolveContent({});
+    return resolveContent({}, lang);
   }
 });
 

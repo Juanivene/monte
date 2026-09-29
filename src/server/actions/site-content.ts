@@ -60,7 +60,7 @@ export async function publishSiteContent(input: unknown): Promise<SiteContentRes
   }
 
   // El footer vive en el layout de la tienda: se revalida todo el árbol.
-  revalidatePath("/", "layout");
+  revalidatePath("/[lang]", "layout");
   return { ok: true };
 }
 

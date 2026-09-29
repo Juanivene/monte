@@ -4,26 +4,50 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { buildOrderWhatsAppLink } from "@/lib/whatsapp";
+import { getDictionary, hasLocale, localePath, pick } from "@/i18n";
 import { WhatsAppRedirect } from "@/components/shop/WhatsAppRedirect";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Pedido recibido",
-  robots: { index: false },
-};
+export async function generateMetadata({
+  params,
+}: PageProps<"/[lang]/pedido-recibido/[orderId]">): Promise<Metadata> {
+  const { lang } = await params;
+  return {
+    title: hasLocale(lang) ? getDictionary(lang).meta.orderReceived : undefined,
+    robots: { index: false },
+  };
+}
 
 export default async function OrderReceivedPage({
   params,
-}: {
-  params: Promise<{ orderId: string }>;
-}) {
-  const { orderId } = await params;
+}: PageProps<"/[lang]/pedido-recibido/[orderId]">) {
+  const { lang, orderId } = await params;
+  if (!hasLocale(lang)) notFound();
+  const t = getDictionary(lang);
+
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { items: true },
+    include: {
+      items: {
+        include: {
+          product: { select: { name: true, nameEn: true, colorName: true, colorNameEn: true } },
+        },
+      },
+    },
   });
   if (!order) notFound();
+
+  // El pedido guarda el nombre en español (para el admin); acá se muestra en el
+  // idioma de la página, con ese snapshot como respaldo.
+  const items = order.items.map((item) => {
+    const name = pick(lang, item.product.name, item.product.nameEn);
+    const color = pick(lang, item.product.colorName, item.product.colorNameEn);
+    return {
+      ...item,
+      displayName: lang === "es" ? item.productName : color ? `${name} (${color})` : name,
+    };
+  });
 
   const reference = order.id.slice(-8).toUpperCase();
   const isPaidByPaypal = order.paymentMethod === "PAYPAL";
@@ -31,10 +55,11 @@ export default async function OrderReceivedPage({
   const whatsappUrl = isPaidByPaypal
     ? null
     : buildOrderWhatsAppLink({
+        lang,
         orderId: order.id,
         buyerName: order.buyerName,
-        items: order.items.map((item) => ({
-          productName: item.productName,
+        items: items.map((item) => ({
+          productName: item.displayName,
           colorName: null,
           size: item.size,
           quantity: item.quantity,
@@ -59,41 +84,41 @@ export default async function OrderReceivedPage({
           </svg>
         </span>
 
-        <p className="eyebrow text-ink-muted mt-6">Pedido #{reference}</p>
-        <h1 className="headline mt-4 text-4xl sm:text-5xl">¡Gracias, {order.buyerName}!</h1>
+        <p className="eyebrow text-ink-muted mt-6">{t.order.number(reference)}</p>
+        <h1 className="headline mt-4 text-4xl sm:text-5xl">{t.order.thanks(order.buyerName)}</h1>
         <p className="text-ink-soft mx-auto mt-4 max-w-md text-sm leading-relaxed">
-          {isPaidByPaypal
-            ? "Tu pago fue confirmado y te mandamos un mail con el resumen. Ya arrancamos a preparar tu pedido."
-            : "Ya tenemos tu pedido reservado y te mandamos un mail con el resumen. Ahora solo falta coordinar el pago y el envío."}
+          {isPaidByPaypal ? t.order.paidBody : t.order.reservedBody}
         </p>
       </div>
 
       {whatsappUrl && <WhatsAppRedirect whatsappUrl={whatsappUrl} />}
 
       <div className="border-ink/12 mt-12 border">
-        <p className="eyebrow text-ink-muted border-ink/12 border-b px-5 py-3">Tu pedido</p>
+        <p className="eyebrow text-ink-muted border-ink/12 border-b px-5 py-3">
+          {t.order.yourOrder}
+        </p>
         <ul className="divide-ink/10 divide-y px-5">
-          {order.items.map((item) => (
+          {items.map((item) => (
             <li key={item.id} className="flex items-start justify-between gap-4 py-3.5 text-sm">
               <span className="text-ink-soft">
                 <span className="text-ink tabular-nums">{item.quantity}×</span>{" "}
-                {item.productName}
-                <span className="text-ink-muted"> · Talle {item.size}</span>
+                {item.displayName}
+                <span className="text-ink-muted"> · {t.size.withSize(item.size)}</span>
               </span>
               <span className="text-ink shrink-0 tabular-nums">
-                {formatPrice(Number(item.unitPrice) * item.quantity)}
+                {formatPrice(Number(item.unitPrice) * item.quantity, lang)}
               </span>
             </li>
           ))}
         </ul>
         <div className="border-ink/12 flex items-baseline justify-between border-t px-5 py-4">
-          <span className="eyebrow text-ink">Total</span>
-          <span className="headline text-xl tabular-nums">{formatPrice(order.total)}</span>
+          <span className="eyebrow text-ink">{t.cart.total}</span>
+          <span className="headline text-xl tabular-nums">{formatPrice(order.total, lang)}</span>
         </div>
       </div>
 
       <div className="bg-bone-dark mt-4 px-5 py-5">
-        <p className="eyebrow text-ink-muted">Envío a</p>
+        <p className="eyebrow text-ink-muted">{t.order.shipTo}</p>
         <p className="text-ink-soft mt-2 text-sm leading-relaxed">
           {order.shippingStreet}, {order.shippingCity}
           {order.shippingState ? `, ${order.shippingState}` : ""}
@@ -107,10 +132,10 @@ export default async function OrderReceivedPage({
 
       <div className="mt-10 text-center">
         <Link
-          href="/"
+          href={localePath(lang, "/")}
           className="eyebrow text-ink-muted link-underline hover:text-ink transition-colors"
         >
-          ← Volver a la tienda
+          {t.order.back}
         </Link>
       </div>
     </div>

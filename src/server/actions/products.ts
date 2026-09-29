@@ -14,7 +14,8 @@ export type ProductActionResult =
   | { ok: false; error: string };
 
 function revalidateShop() {
-  revalidatePath("/");
+  // Todas las páginas de la tienda, en los dos idiomas.
+  revalidatePath("/[lang]", "layout");
   revalidatePath("/admin/productos");
 }
 
@@ -41,6 +42,9 @@ export async function createProduct(input: ProductInput): Promise<ProductActionR
       description: data.description,
       price: data.price,
       colorName: data.colorName || null,
+      colorNameEn: data.colorNameEn || null,
+      nameEn: data.nameEn || null,
+      descriptionEn: data.descriptionEn || null,
       categoryId: data.categoryId || null,
       isActive: data.isActive,
       images: { create: data.images.map((url, order) => ({ url, order })) },
@@ -84,6 +88,9 @@ export async function updateProduct(
         description: data.description,
         price: data.price,
         colorName: data.colorName || null,
+        colorNameEn: data.colorNameEn || null,
+        nameEn: data.nameEn || null,
+        descriptionEn: data.descriptionEn || null,
         categoryId: data.categoryId || null,
         isActive: data.isActive,
         images: { create: data.images.map((url, order) => ({ url, order })) },
@@ -95,7 +102,7 @@ export async function updateProduct(
   ]);
 
   revalidateShop();
-  revalidatePath(`/productos/${slug}`);
+  revalidatePath("/[lang]/productos/[slug]", "page");
   return { ok: true, productId: id };
 }
 
@@ -148,6 +155,9 @@ export async function createColorVariant(
       description: data.description,
       price: data.price,
       colorName: data.colorName || null,
+      colorNameEn: data.colorNameEn || null,
+      nameEn: data.nameEn || null,
+      descriptionEn: data.descriptionEn || null,
       categoryId: data.categoryId || base.categoryId,
       isActive: data.isActive,
       groupId,
