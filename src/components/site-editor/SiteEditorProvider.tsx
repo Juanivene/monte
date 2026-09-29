@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { confirmToast } from "@/lib/confirm-toast";
+import { locales, type Locale } from "@/i18n/config";
 import {
-  TEXT_FIELDS,
+  defaultText,
   resolveContent,
   sameOverrides,
+  textKeyFor,
   type ContentOverrides,
   type ImageField,
   type ImageOverride,
@@ -36,11 +39,14 @@ const saveLabels: Record<SaveState, string> = {
  * borrador (no lo ve el cliente); "Publicar" lo pasa a la tienda.
  */
 export function SiteEditorProvider({
+  lang,
   initialDraft,
   initialPublished,
   dbOk,
   children,
 }: {
+  /** Idioma que se está viendo y editando (los textos van por idioma). */
+  lang: Locale;
   initialDraft: ContentOverrides;
   initialPublished: ContentOverrides;
   /** false si la base no respondió al abrir: se muestra el default y se avisa. */
@@ -109,28 +115,31 @@ export function SiteEditorProvider({
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [saveState]);
 
-  const content = useMemo(() => resolveContent(draft), [draft]);
+  const content = useMemo(() => resolveContent(draft, lang), [draft, lang]);
   const dirty = !sameOverrides(draft, published);
 
   const api = useMemo<SiteEditorApi>(
     () => ({
+      lang,
       content,
       showMarks,
-      isTextOverridden: (field) => draft.text?.[field] !== undefined,
+      isTextOverridden: (field) => draft[textKeyFor(field, lang)]?.[field] !== undefined,
       isImageOverridden: (field) => draft.image?.[field] !== undefined,
       setText: (field: TextField, value: string) =>
         applyDraft((current) => {
-          const text = { ...current.text };
+          const key = textKeyFor(field, lang);
+          const group = { ...current[key] };
           // Si vuelve al valor original, no hace falta guardarlo.
-          if (value === TEXT_FIELDS[field].default) delete text[field];
-          else text[field] = value;
-          return { ...current, text };
+          if (value === defaultText(field, lang)) delete group[field];
+          else group[field] = value;
+          return { ...current, [key]: group };
         }),
       resetText: (field) =>
         applyDraft((current) => {
-          const text = { ...current.text };
-          delete text[field];
-          return { ...current, text };
+          const key = textKeyFor(field, lang);
+          const group = { ...current[key] };
+          delete group[field];
+          return { ...current, [key]: group };
         }),
       updateImage: (field: ImageField, patch: ImageOverride) =>
         applyDraft((current) => ({
@@ -145,8 +154,31 @@ export function SiteEditorProvider({
         }),
       openImage: setActiveImage,
     }),
-    [content, showMarks, draft, applyDraft],
+    [lang, content, showMarks, draft, applyDraft],
   );
+
+  const router = useRouter();
+  const [switching, setSwitching] = useState(false);
+
+  /**
+   * Cambia el idioma de la preview. Es una navegación (el catálogo y los
+   * nombres de productos se renderizan en el servidor en ese idioma), así
+   * que antes se guarda lo pendiente.
+   */
+  async function switchLang(target: Locale) {
+    if (target === lang) return;
+    setSwitching(true);
+    window.clearTimeout(timerRef.current);
+    await flush();
+    router.push(`/admin/preview?lang=${target}`);
+  }
+
+  // Terminó la navegación al otro idioma.
+  const [lastLang, setLastLang] = useState(lang);
+  if (lang !== lastLang) {
+    setLastLang(lang);
+    setSwitching(false);
+  }
 
   async function publish() {
     cancelAutosave();
@@ -243,6 +275,27 @@ export function SiteEditorProvider({
         </div>
 
         <div className="flex flex-1 items-center justify-between gap-1.5 sm:flex-none sm:justify-end">
+          {/* Idioma que se edita: los textos van por idioma, las fotos son las mismas. */}
+          <div
+            role="group"
+            aria-label="Idioma que estás editando"
+            className="flex rounded-lg bg-white/10 p-0.5"
+          >
+            {locales.map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => switchLang(l)}
+                disabled={switching}
+                aria-pressed={l === lang}
+                className={`rounded-md px-2 py-1.5 text-xs font-semibold uppercase ${
+                  l === lang ? "bg-white text-neutral-900" : "text-white/70 hover:text-white"
+                }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={() => setShowMarks((v) => !v)}

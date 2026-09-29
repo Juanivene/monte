@@ -20,9 +20,11 @@ export async function createCategory(input: CategoryInput): Promise<ActionResult
     async (candidate) => (await prisma.category.count({ where: { slug: candidate } })) > 0,
   );
 
-  await prisma.category.create({ data: { name: parsed.data.name, slug } });
+  await prisma.category.create({
+    data: { name: parsed.data.name, nameEn: parsed.data.nameEn || null, slug },
+  });
   revalidatePath("/admin/categorias");
-  revalidatePath("/");
+  revalidatePath("/[lang]", "layout");
   return { ok: true };
 }
 
@@ -38,10 +40,10 @@ export async function updateCategory(
 
   await prisma.category.update({
     where: { id },
-    data: { name: parsed.data.name },
+    data: { name: parsed.data.name, nameEn: parsed.data.nameEn || null },
   });
   revalidatePath("/admin/categorias");
-  revalidatePath("/");
+  revalidatePath("/[lang]", "layout");
   return { ok: true };
 }
 
@@ -50,6 +52,6 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   // los productos de esta categoría quedan sin categoría (relación opcional, onDelete: SetNull)
   await prisma.category.delete({ where: { id } });
   revalidatePath("/admin/categorias");
-  revalidatePath("/");
+  revalidatePath("/[lang]", "layout");
   return { ok: true };
 }

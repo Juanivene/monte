@@ -46,6 +46,8 @@ model Admin {
 model Category {
   id        String    @id @default(cuid())
   name      String
+  /// Versión en inglés; si está vacía la tienda en /en muestra el nombre en español.
+  nameEn    String?
   slug      String    @unique
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -62,15 +64,19 @@ model ProductGroup {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String
-  price       Decimal  @db.Decimal(10, 2)
-  colorName   String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  /// Versiones en inglés (opcionales): vacías, /en muestra el español.
+  nameEn        String?
+  slug          String   @unique
+  description   String
+  descriptionEn String?
+  price         Decimal  @db.Decimal(10, 2)
+  colorName     String?
+  colorNameEn   String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
@@ -97,9 +103,9 @@ model ProductImage {
 }
 
 model ProductVariant {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   size      Size
-  stock     Int    @default(0)
+  stock     Int     @default(0)
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -128,6 +134,9 @@ model Order {
   paypalOrderId String?       @unique
   paidAt        DateTime?
 
+  /// Idioma en que se hizo el pedido: los mails al comprador salen en ese idioma.
+  locale String @default("es")
+
   items OrderItem[]
 }
 
@@ -154,6 +163,8 @@ model Legend {
   id        String      @id @default(cuid())
   group     LegendGroup
   text      String
+  /// Versión en inglés; si está vacía, /en muestra el texto en español.
+  textEn    String?
   order     Int         @default(0)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt

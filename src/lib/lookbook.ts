@@ -26,88 +26,110 @@ import trioSenda from "../../public/lookbook/trio-senda.png";
 export type Shot = {
   src: StaticImageData;
   alt: string;
+  /** Descripción en inglés, para /en. */
+  altEn: string;
 };
 
 export const shots = {
   buzoNegroPorton: {
     src: buzoNegroPorton,
     alt: "Buzo Monte negro con ojales, apoyada en un portón de Recoleta",
+    altEn: "Black Monte hoodie with eyelets, leaning against a gate in Recoleta",
   },
   buzoNegroViaducto01: {
     src: buzoNegroViaducto01,
     alt: "Buzo Monte negro con ojales, sentada bajo un viaducto de hormigón",
+    altEn: "Black Monte hoodie with eyelets, seated under a concrete overpass",
   },
   buzoNegroViaducto02: {
     src: buzoNegroViaducto02,
     alt: "Buzo Monte negro con ojales y gorra, bajo un viaducto de hormigón",
+    altEn: "Black Monte hoodie with eyelets and a cap, under a concrete overpass",
   },
   buzoTealCochera: {
     src: buzoTealCochera,
     alt: "Buzo Monte teal frente a la entrada de una cochera",
+    altEn: "Teal Monte hoodie in front of a garage entrance",
   },
   buzoTealPasaje: {
     src: buzoTealPasaje,
     alt: "Buzo Monte teal en un pasaje entre torres de hormigón",
+    altEn: "Teal Monte hoodie in a passage between concrete towers",
   },
   buzoTealTorre01: {
     src: buzoTealTorre01,
     alt: "Buzo Monte teal con capucha, contrapicado frente a una torre",
+    altEn: "Teal Monte hoodie with the hood up, low-angle shot in front of a tower",
   },
   buzoTealTorre02: {
     src: buzoTealTorre02,
     alt: "Buzo Monte teal con capucha frente a una torre brutalista",
+    altEn: "Teal Monte hoodie with the hood up in front of a brutalist tower",
   },
   buzoTealTorre03: {
     src: buzoTealTorre03,
     alt: "Buzo Monte teal y pantalón ancho frente a una torre brutalista",
+    altEn: "Teal Monte hoodie and wide-leg pants in front of a brutalist tower",
   },
   duoCafe: {
     src: duoCafe,
     alt: "Dos personas con buzos Monte sentadas en la vereda de un café",
+    altEn: "Two people in Monte hoodies sitting outside a café",
   },
   duoCafeCuadrada: {
     src: duoCafeCuadrada,
     alt: "Buzos Monte negro y teal en una mesa de la vereda",
+    altEn: "Black and teal Monte hoodies at a sidewalk café table",
   },
   duoEscalinata: {
     src: duoEscalinata,
     alt: "Buzos Monte negro y teal en una escalinata de piedra",
+    altEn: "Black and teal Monte hoodies on a stone staircase",
   },
   remeraNegraRoca: {
     src: remeraNegraRoca,
     alt: "Remera Monte negra oversize contra una pared de granito",
+    altEn: "Black oversized Monte tee against a granite wall",
   },
   remeraNegraRocas: {
     src: remeraNegraRocas,
     alt: "Remera Monte negra oversize entre rocas de playa",
+    altEn: "Black oversized Monte tee among beach rocks",
   },
   remeraVerdeMar: {
     src: remeraVerdeMar,
     alt: "Remera Monte verde oversize frente al mar",
+    altEn: "Green oversized Monte tee by the sea",
   },
   remerasArena: {
     src: remerasArena,
     alt: "Remeras Monte negra y verde apoyadas sobre la arena",
+    altEn: "Black and green Monte tees laid out on the sand",
   },
   totePlaya: {
     src: totePlaya,
     alt: "Tote bag Monte de lona cruda caminando por la playa",
+    altEn: "Raw canvas Monte tote bag on a walk along the beach",
   },
   trioCalle: {
     src: trioCalle,
     alt: "Tres personas con buzos Monte en una calle de Buenos Aires",
+    altEn: "Three people in Monte hoodies on a Buenos Aires street",
   },
   trioCaminata: {
     src: trioCaminata,
     alt: "Tres personas con buzos Monte caminando por la ciudad",
+    altEn: "Three people in Monte hoodies walking through the city",
   },
   trioMuro: {
     src: trioMuro,
     alt: "Tres personas con buzos Monte negro, verde y teal contra un muro con hiedra",
+    altEn: "Three people in black, green and teal Monte hoodies against an ivy-covered wall",
   },
   trioSenda: {
     src: trioSenda,
     alt: "Tres personas con buzos Monte cruzando la senda peatonal",
+    altEn: "Three people in Monte hoodies crossing the street",
   },
 } as const satisfies Record<string, Shot>;
 

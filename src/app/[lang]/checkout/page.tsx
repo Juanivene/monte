@@ -6,6 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/money";
+import { useI18n } from "@/i18n/client";
+import { checkoutErrorMessage, localePath, pick } from "@/i18n";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Label, FieldError } from "@/components/ui/Field";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -29,22 +31,21 @@ type FormState = {
   shippingNotes: string;
 };
 
-const initialState: FormState = {
-  buyerName: "",
-  buyerEmail: "",
-  buyerPhone: "",
-  shippingStreet: "",
-  shippingCity: "",
-  shippingState: "",
-  shippingPostalCode: "",
-  shippingCountry: "Argentina",
-  shippingNotes: "",
-};
-
 export default function CheckoutPage() {
   const { items, subtotal, clear, isHydrated } = useCart();
+  const { lang, t } = useI18n();
   const router = useRouter();
-  const [form, setForm] = useState<FormState>(initialState);
+  const [form, setForm] = useState<FormState>({
+    buyerName: "",
+    buyerEmail: "",
+    buyerPhone: "",
+    shippingStreet: "",
+    shippingCity: "",
+    shippingState: "",
+    shippingPostalCode: "",
+    shippingCountry: t.checkout.defaultCountry,
+    shippingNotes: "",
+  });
   const [errors, setErrors] = useState<
     Partial<Record<keyof FormState, string>>
   >({});
@@ -58,6 +59,9 @@ export default function CheckoutPage() {
     "items"
   > | null>(null);
 
+  const orderReceivedPath = (orderId: string) =>
+    localePath(lang, `/pedido-recibido/${orderId}`);
+
   function handleChange(field: keyof FormState) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -65,41 +69,38 @@ export default function CheckoutPage() {
     };
   }
 
-  function handleContinueToPayment() {
-    setFormError(null);
-    const parsed = buyerFieldsSchema.safeParse(form);
+  /** Valida los datos del comprador; si hay errores los muestra y devuelve null. */
+  function validateBuyer() {
+    const parsed = buyerFieldsSchema.safeParse({ ...form, locale: lang });
     if (!parsed.success) {
       const fieldErrors: Partial<Record<keyof FormState, string>> = {};
       for (const issue of parsed.error.issues) {
         const key = issue.path[0] as keyof FormState;
-        if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+        if (!fieldErrors[key]) fieldErrors[key] = checkoutErrorMessage(lang, issue.message);
       }
       setErrors(fieldErrors);
-      return;
+      return null;
     }
     setErrors({});
-    setValidatedBuyerData(parsed.data);
+    return parsed.data;
+  }
+
+  function handleContinueToPayment() {
+    setFormError(null);
+    const data = validateBuyer();
+    if (data) setValidatedBuyerData(data);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
 
-    const parsed = buyerFieldsSchema.safeParse(form);
-    if (!parsed.success) {
-      const fieldErrors: Partial<Record<keyof FormState, string>> = {};
-      for (const issue of parsed.error.issues) {
-        const key = issue.path[0] as keyof FormState;
-        if (!fieldErrors[key]) fieldErrors[key] = issue.message;
-      }
-      setErrors(fieldErrors);
-      return;
-    }
-    setErrors({});
+    const data = validateBuyer();
+    if (!data) return;
     setSubmitting(true);
 
     const result = await submitCheckout({
-      ...parsed.data,
+      ...data,
       items: items.map((i) => ({
         productId: i.productId,
         size: i.size,
@@ -115,18 +116,18 @@ export default function CheckoutPage() {
     }
 
     clear();
-    router.push(`/pedido-recibido/${result.orderId}`);
+    router.push(orderReceivedPath(result.orderId));
   }
 
   if (isHydrated && items.length === 0) {
     return (
       <div className="container-page py-20 sm:py-28">
         <EmptyState
-          title="Tu carrito está vacío"
-          description="Agregá algo antes de completar el pedido."
+          title={t.cart.emptyTitle}
+          description={t.checkout.emptyBody}
           action={
-            <Link href="/">
-              <Button size="lg">Ver colección</Button>
+            <Link href={localePath(lang, "/")}>
+              <Button size="lg">{t.cart.viewCollection}</Button>
             </Link>
           }
         />
@@ -134,14 +135,35 @@ export default function CheckoutPage() {
     );
   }
 
+  const paypalButton = validatedBuyerData ? (
+    <PaypalCheckoutButton
+      buyerData={{
+        ...validatedBuyerData,
+        items: items.map((i) => ({
+          productId: i.productId,
+          size: i.size,
+          quantity: i.quantity,
+        })),
+      }}
+      onSuccess={(orderId) => {
+        clear();
+        router.push(orderReceivedPath(orderId));
+      }}
+      onError={setFormError}
+    />
+  ) : (
+    <Button type="button" size="lg" className="w-full" onClick={handleContinueToPayment}>
+      {t.checkout.continueToPayment}
+    </Button>
+  );
+
   return (
     <div className="container-page py-12 sm:py-16">
       <div className="border-ink/12 border-b pb-6">
-        <p className="eyebrow text-ink-muted">Paso 2 de 2</p>
-        <h1 className="headline mt-3 text-4xl sm:text-5xl">Finalizar pedido</h1>
+        <p className="eyebrow text-ink-muted">{t.checkout.step}</p>
+        <h1 className="headline mt-3 text-4xl sm:text-5xl">{t.checkout.title}</h1>
         <p className="text-ink-muted mt-3 max-w-lg text-sm leading-relaxed">
-          Dejanos tus datos y el pedido queda reservado. El pago y el envío los
-          coordinamos después, por WhatsApp.
+          {t.checkout.intro}
         </p>
       </div>
 
@@ -153,11 +175,11 @@ export default function CheckoutPage() {
           noValidate
         >
           <section>
-            <SectionTitle index="01" title="Tus datos" />
+            <SectionTitle index="01" title={t.checkout.buyerSection} />
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <Label htmlFor="buyerName" required>
-                  Nombre y apellido
+                  {t.checkout.name}
                 </Label>
                 <Input
                   id="buyerName"
@@ -169,7 +191,7 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <Label htmlFor="buyerEmail" required>
-                  Email
+                  {t.checkout.email}
                 </Label>
                 <Input
                   id="buyerEmail"
@@ -182,7 +204,7 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <Label htmlFor="buyerPhone" required>
-                  Teléfono
+                  {t.checkout.phone}
                 </Label>
                 <Input
                   id="buyerPhone"
@@ -197,11 +219,11 @@ export default function CheckoutPage() {
           </section>
 
           <section>
-            <SectionTitle index="02" title="Dirección de envío" />
+            <SectionTitle index="02" title={t.checkout.shippingSection} />
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <Label htmlFor="shippingStreet" required>
-                  Calle y número
+                  {t.checkout.street}
                 </Label>
                 <Input
                   id="shippingStreet"
@@ -213,7 +235,7 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <Label htmlFor="shippingCity" required>
-                  Localidad
+                  {t.checkout.city}
                 </Label>
                 <Input
                   id="shippingCity"
@@ -224,7 +246,7 @@ export default function CheckoutPage() {
                 <FieldError message={errors.shippingCity} />
               </div>
               <div>
-                <Label htmlFor="shippingState">Provincia</Label>
+                <Label htmlFor="shippingState">{t.checkout.state}</Label>
                 <Input
                   id="shippingState"
                   autoComplete="address-level1"
@@ -233,7 +255,7 @@ export default function CheckoutPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="shippingPostalCode">Código postal</Label>
+                <Label htmlFor="shippingPostalCode">{t.checkout.postalCode}</Label>
                 <Input
                   id="shippingPostalCode"
                   autoComplete="postal-code"
@@ -243,7 +265,7 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <Label htmlFor="shippingCountry" required>
-                  País
+                  {t.checkout.country}
                 </Label>
                 <Input
                   id="shippingCountry"
@@ -254,13 +276,11 @@ export default function CheckoutPage() {
                 <FieldError message={errors.shippingCountry} />
               </div>
               <div className="sm:col-span-2">
-                <Label htmlFor="shippingNotes">
-                  Notas para la entrega (opcional)
-                </Label>
+                <Label htmlFor="shippingNotes">{t.checkout.notes}</Label>
                 <Textarea
                   id="shippingNotes"
                   rows={3}
-                  placeholder="Timbre, horarios, referencias…"
+                  placeholder={t.checkout.notesPlaceholder}
                   value={form.shippingNotes}
                   onChange={handleChange("shippingNotes")}
                 />
@@ -269,12 +289,12 @@ export default function CheckoutPage() {
           </section>
 
           <section>
-            <SectionTitle index="03" title="Método de pago" />
+            <SectionTitle index="03" title={t.checkout.paymentSection} />
             <div className="grid grid-cols-2 gap-3">
               {(
                 [
-                  { value: "transferencia", label: "Transferencia" },
-                  { value: "tarjeta", label: "Tarjeta" },
+                  { value: "transferencia", label: t.checkout.transfer },
+                  { value: "tarjeta", label: t.checkout.card },
                 ] as const
               ).map((option) => {
                 const selected = paymentMethod === option.value;
@@ -296,9 +316,7 @@ export default function CheckoutPage() {
               })}
             </div>
             <p className="text-ink-muted mt-3 text-xs leading-relaxed">
-              {paymentMethod === "transferencia"
-                ? "Coordinamos el pago y el envío después, por WhatsApp."
-                : "Pagás ahora con tarjeta de crédito o débito, vía PayPal."}
+              {paymentMethod === "transferencia" ? t.checkout.transferHint : t.checkout.cardHint}
             </p>
           </section>
 
@@ -308,52 +326,20 @@ export default function CheckoutPage() {
             </p>
           )}
 
-          {paymentMethod === "transferencia" ? (
-            <div className="lg:hidden">
-              <Button
-                type="submit"
-                size="lg"
-                disabled={submitting}
-                className="w-full"
-              >
-                {submitting ? "Enviando…" : "Confirmar pedido"}
+          <div className="lg:hidden">
+            {paymentMethod === "transferencia" ? (
+              <Button type="submit" size="lg" disabled={submitting} className="w-full">
+                {submitting ? t.checkout.sending : t.checkout.confirm}
               </Button>
-            </div>
-          ) : (
-            <div className="lg:hidden">
-              {validatedBuyerData ? (
-                <PaypalCheckoutButton
-                  buyerData={{
-                    ...validatedBuyerData,
-                    items: items.map((i) => ({
-                      productId: i.productId,
-                      size: i.size,
-                      quantity: i.quantity,
-                    })),
-                  }}
-                  onSuccess={(orderId) => {
-                    clear();
-                    router.push(`/pedido-recibido/${orderId}`);
-                  }}
-                  onError={setFormError}
-                />
-              ) : (
-                <Button
-                  type="button"
-                  size="lg"
-                  className="w-full"
-                  onClick={handleContinueToPayment}
-                >
-                  Continuar al pago
-                </Button>
-              )}
-            </div>
-          )}
+            ) : (
+              paypalButton
+            )}
+          </div>
         </form>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="border-ink/12 border p-6">
-            <p className="eyebrow text-ink-muted">Tu pedido</p>
+            <p className="eyebrow text-ink-muted">{t.checkout.yourOrder}</p>
 
             <ul className="divide-ink/10 mt-5 divide-y">
               {items.map((item) => (
@@ -374,23 +360,23 @@ export default function CheckoutPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-ink truncate text-xs font-medium">
-                      {item.productName}
+                      {pick(lang, item.productName, item.productNameEn)}
                     </p>
                     <p className="text-ink-muted mt-0.5 text-[0.7rem]">
-                      {item.quantity} × Talle {item.size}
+                      {t.checkout.qtyAndSize(item.quantity, item.size)}
                     </p>
                   </div>
                   <p className="text-ink shrink-0 text-xs tabular-nums">
-                    {formatPrice(item.price * item.quantity)}
+                    {formatPrice(item.price * item.quantity, lang)}
                   </p>
                 </li>
               ))}
             </ul>
 
             <div className="border-ink/12 mt-4 flex items-baseline justify-between border-t pt-4">
-              <span className="eyebrow text-ink">Total</span>
+              <span className="eyebrow text-ink">{t.cart.total}</span>
               <span className="headline text-xl tabular-nums">
-                {formatPrice(subtotal)}
+                {formatPrice(subtotal, lang)}
               </span>
             </div>
 
@@ -403,40 +389,17 @@ export default function CheckoutPage() {
                   disabled={submitting}
                   className="w-full"
                 >
-                  {submitting ? "Enviando…" : "Confirmar pedido"}
+                  {submitting ? t.checkout.sending : t.checkout.confirm}
                 </Button>
-              ) : validatedBuyerData ? (
-                <PaypalCheckoutButton
-                  buyerData={{
-                    ...validatedBuyerData,
-                    items: items.map((i) => ({
-                      productId: i.productId,
-                      size: i.size,
-                      quantity: i.quantity,
-                    })),
-                  }}
-                  onSuccess={(orderId) => {
-                    clear();
-                    router.push(`/pedido-recibido/${orderId}`);
-                  }}
-                  onError={setFormError}
-                />
               ) : (
-                <Button
-                  type="button"
-                  size="lg"
-                  className="w-full"
-                  onClick={handleContinueToPayment}
-                >
-                  Continuar al pago
-                </Button>
+                paypalButton
               )}
             </div>
 
             <p className="text-ink-muted mt-4 text-[0.7rem] leading-relaxed">
               {paymentMethod === "transferencia"
-                ? "No se procesa ningún pago acá. Después de confirmar, coordinamos el pago y el envío por WhatsApp."
-                : "El pago se procesa de forma segura a través de PayPal."}
+                ? t.checkout.transferFootnote
+                : t.checkout.cardFootnote}
             </p>
           </div>
         </aside>

@@ -2,18 +2,21 @@ import "server-only";
 import { resend } from "./resend";
 import OrderConfirmationBuyer from "@/emails/OrderConfirmationBuyer";
 import NewOrderAdmin from "@/emails/NewOrderAdmin";
-import OrderStatusUpdate, {
-  STATUS_COPY,
-  type NotifiableOrderStatus,
-} from "@/emails/OrderStatusUpdate";
+import OrderStatusUpdate, { isNotifiableStatus, statusCopy } from "@/emails/OrderStatusUpdate";
 import type { EmailOrderItem } from "@/emails/shared";
+import { getDictionary, hasLocale, type Locale } from "@/i18n";
 
 type SendOrderEmailsParams = {
   orderId: string;
+  /** Idioma del comprador: su mail sale en ese idioma. El del admin, en español. */
+  locale: Locale;
   buyerName: string;
   buyerEmail: string;
   buyerPhone: string;
+  /** Ítems con el nombre en español, para el admin. */
   items: EmailOrderItem[];
+  /** Los mismos ítems con el nombre en el idioma del comprador. */
+  buyerItems: EmailOrderItem[];
   total: number;
   shippingSummary: string;
 };
@@ -32,11 +35,12 @@ export async function sendOrderEmails(params: SendOrderEmailsParams) {
     resend.emails.send({
       from,
       to: params.buyerEmail,
-      subject: `Recibimos tu pedido #${orderShortId}`,
+      subject: getDictionary(params.locale).emails.confirmationSubject(orderShortId),
       react: OrderConfirmationBuyer({
+        lang: params.locale,
         buyerName: params.buyerName,
         orderShortId,
-        items: params.items,
+        items: params.buyerItems,
         total: params.total,
         shippingSummary: params.shippingSummary,
       }),
@@ -48,7 +52,9 @@ export async function sendOrderEmails(params: SendOrderEmailsParams) {
       resend.emails.send({
         from,
         to: adminEmail,
-        subject: `Nuevo pedido #${orderShortId} de ${params.buyerName}`,
+        subject: `Nuevo pedido #${orderShortId} de ${params.buyerName}${
+          params.locale === "en" ? " (en inglés)" : ""
+        }`,
         react: NewOrderAdmin({
           orderShortId,
           buyerName: params.buyerName,
@@ -77,9 +83,12 @@ export async function sendOrderStatusEmail(params: {
   buyerName: string;
   buyerEmail: string;
   status: string;
+  /** Idioma en que se hizo el pedido (Order.locale). */
+  locale: string;
 }) {
-  if (!Object.hasOwn(STATUS_COPY, params.status)) return;
-  const status = params.status as NotifiableOrderStatus;
+  if (!isNotifiableStatus(params.status)) return;
+  const status = params.status;
+  const lang: Locale = hasLocale(params.locale) ? params.locale : "es";
   const orderShortId = params.orderId.slice(-8).toUpperCase();
   const from = process.env.EMAIL_FROM;
 
@@ -92,8 +101,8 @@ export async function sendOrderStatusEmail(params: {
     const { error } = await resend.emails.send({
       from,
       to: params.buyerEmail,
-      subject: `${STATUS_COPY[status].subject} #${orderShortId}`,
-      react: OrderStatusUpdate({ buyerName: params.buyerName, orderShortId, status }),
+      subject: `${statusCopy(lang, status).subject} #${orderShortId}`,
+      react: OrderStatusUpdate({ lang, buyerName: params.buyerName, orderShortId, status }),
     });
     if (error) console.error("Error enviando email de estado del pedido:", error);
   } catch (err) {

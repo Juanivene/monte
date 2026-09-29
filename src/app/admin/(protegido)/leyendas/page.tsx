@@ -12,7 +12,7 @@ export default async function AdminLegendsPage() {
     <div className="max-w-2xl">
       <PageHeader
         title="Leyendas"
-        subtitle="Los textos de las dos cintas que se desplazan en la tienda. Los cambios se ven al instante, sin necesidad de deploy."
+        subtitle="Los textos de las dos cintas que se desplazan en la tienda, en español y en inglés. Los cambios se ven al instante, sin necesidad de deploy."
       />
 
       <div className="space-y-4 sm:space-y-6">

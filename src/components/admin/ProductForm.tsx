@@ -18,6 +18,9 @@ type InitialProduct = {
   description: string;
   price: number;
   colorName: string | null;
+  nameEn: string | null;
+  descriptionEn: string | null;
+  colorNameEn: string | null;
   categoryId: string | null;
   isActive: boolean;
   images: string[];
@@ -50,6 +53,9 @@ export function ProductForm({
   const [description, setDescription] = useState(initialProduct?.description ?? "");
   const [price, setPrice] = useState(initialProduct ? String(initialProduct.price) : "");
   const [colorName, setColorName] = useState(initialProduct?.colorName ?? "");
+  const [nameEn, setNameEn] = useState(initialProduct?.nameEn ?? "");
+  const [descriptionEn, setDescriptionEn] = useState(initialProduct?.descriptionEn ?? "");
+  const [colorNameEn, setColorNameEn] = useState(initialProduct?.colorNameEn ?? "");
   const [categoryId, setCategoryId] = useState(initialProduct?.categoryId ?? "");
   const [isActive, setIsActive] = useState(initialProduct?.isActive ?? true);
   const [images, setImages] = useState<string[]>(initialProduct?.images ?? []);
@@ -78,6 +84,9 @@ export function ProductForm({
       description,
       price: priceNumber,
       colorName,
+      nameEn,
+      descriptionEn,
+      colorNameEn,
       categoryId,
       isActive,
       images,
@@ -222,6 +231,48 @@ export function ProductForm({
               className="h-5 w-5 shrink-0 rounded border-neutral-300 accent-neutral-900"
             />
           </label>
+        </div>
+      </section>
+
+      <section className={sectionClass}>
+        <h2 className="text-sm font-semibold text-neutral-900">En inglés</h2>
+        <p className="mt-1 mb-4 text-xs text-neutral-500">
+          Lo que ve el cliente en la tienda en inglés (/en). Lo que dejes vacío se muestra en
+          español.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="nameEn">Nombre en inglés</Label>
+            <Input
+              id="nameEn"
+              value={nameEn}
+              onChange={(e) => setNameEn(e.target.value)}
+              placeholder={name || "Ej: Monte Hoodie"}
+              lang="en"
+              enterKeyHint="next"
+            />
+          </div>
+          <div>
+            <Label htmlFor="colorNameEn">Color en inglés</Label>
+            <Input
+              id="colorNameEn"
+              value={colorNameEn}
+              onChange={(e) => setColorNameEn(e.target.value)}
+              placeholder={colorName || "Opcional"}
+              lang="en"
+              enterKeyHint="next"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <Label htmlFor="descriptionEn">Descripción en inglés</Label>
+            <Textarea
+              id="descriptionEn"
+              rows={5}
+              value={descriptionEn}
+              onChange={(e) => setDescriptionEn(e.target.value)}
+              lang="en"
+            />
+          </div>
         </div>
       </section>
 

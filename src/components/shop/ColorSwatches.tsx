@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getDictionary, localePath, type Locale } from "@/i18n";
 
 type Sibling = {
   id: string;
@@ -9,18 +10,22 @@ type Sibling = {
 };
 
 export function ColorSwatches({
+  lang,
   currentColorName,
   currentImage,
   siblings,
 }: {
+  lang: Locale;
   currentColorName: string | null;
   currentImage?: string;
   siblings: Sibling[];
 }) {
+  const t = getDictionary(lang);
   return (
     <div>
       <p className="eyebrow text-ink-muted">
-        Color{currentColorName ? `: ${currentColorName}` : ""}
+        {t.product.color}
+        {currentColorName ? `: ${currentColorName}` : ""}
       </p>
 
       <div className="mt-3 flex flex-wrap gap-2.5">
@@ -36,8 +41,8 @@ export function ColorSwatches({
         {siblings.map((sibling) => (
           <Link
             key={sibling.id}
-            href={`/productos/${sibling.slug}`}
-            title={sibling.colorName ?? "Ver otro color"}
+            href={localePath(lang, `/productos/${sibling.slug}`)}
+            title={sibling.colorName ?? t.product.otherColor}
             className="ring-ink/0 hover:ring-ink/40 bg-bone-dark relative h-14 w-14 overflow-hidden ring-1 ring-offset-2 ring-offset-bone transition-shadow"
           >
             {sibling.images[0] && (

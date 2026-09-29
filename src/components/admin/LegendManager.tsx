@@ -10,7 +10,7 @@ import { IconButton, PencilIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from ".
 import { createLegend, updateLegendText, deleteLegend, moveLegend } from "@/server/actions/legends";
 import type { LegendGroup } from "@prisma/client";
 
-type Legend = { id: string; text: string; order: number };
+type Legend = { id: string; text: string; textEn: string | null; order: number };
 
 export function LegendManager({
   group,
@@ -25,16 +25,18 @@ export function LegendManager({
 }) {
   const router = useRouter();
   const [text, setText] = useState("");
+  const [textEn, setTextEn] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
+  const [editingTextEn, setEditingTextEn] = useState("");
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    const result = await createLegend({ group, text });
+    const result = await createLegend({ group, text, textEn });
     setSubmitting(false);
     if (!result.ok) {
       setError(result.error);
@@ -43,11 +45,12 @@ export function LegendManager({
     }
     toast.success("Leyenda agregada.");
     setText("");
+    setTextEn("");
     router.refresh();
   }
 
   async function handleUpdate(id: string) {
-    const result = await updateLegendText(id, editingText);
+    const result = await updateLegendText(id, { text: editingText, textEn: editingTextEn });
     if (!result.ok) {
       toast.error(result.error);
       return;
@@ -82,19 +85,30 @@ export function LegendManager({
       <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>
       {description && <p className="mt-1 text-xs text-neutral-500">{description}</p>}
 
-      <form onSubmit={handleCreate} className="mt-4 flex gap-2">
+      <form onSubmit={handleCreate} className="mt-4 space-y-2">
+        <div className="flex gap-2">
+          <Input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Ej: Envíos a todo el país"
+            aria-label="Nueva leyenda"
+            maxLength={120}
+            enterKeyHint="next"
+            className="min-w-0 flex-1"
+          />
+          <Button type="submit" disabled={submitting || !text.trim()} className="shrink-0">
+            Agregar
+          </Button>
+        </div>
         <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Ej: Envíos a todo el país"
-          aria-label="Nueva leyenda"
+          value={textEn}
+          onChange={(e) => setTextEn(e.target.value)}
+          placeholder="En inglés (opcional). Ej: Nationwide shipping"
+          aria-label="Nueva leyenda en inglés"
           maxLength={120}
+          lang="en"
           enterKeyHint="done"
-          className="min-w-0 flex-1"
         />
-        <Button type="submit" disabled={submitting || !text.trim()} className="shrink-0">
-          Agregar
-        </Button>
       </form>
       <FieldError message={error ?? undefined} />
 
@@ -120,6 +134,16 @@ export function LegendManager({
                   aria-label="Texto de la leyenda"
                   maxLength={120}
                   autoFocus
+                  enterKeyHint="next"
+                  className="min-w-0 sm:flex-1"
+                />
+                <Input
+                  value={editingTextEn}
+                  onChange={(e) => setEditingTextEn(e.target.value)}
+                  aria-label="Texto en inglés"
+                  placeholder="En inglés (opcional)"
+                  maxLength={120}
+                  lang="en"
                   enterKeyHint="done"
                   className="min-w-0 sm:flex-1"
                 />
@@ -140,10 +164,14 @@ export function LegendManager({
                   onClick={() => {
                     setEditingId(legend.id);
                     setEditingText(legend.text);
+                    setEditingTextEn(legend.textEn ?? "");
                   }}
                   className="min-h-10 min-w-0 flex-1 text-left text-sm text-neutral-800"
                 >
                   {legend.text}
+                  <span className="block text-xs text-neutral-400">
+                    {legend.textEn || "Sin versión en inglés (se muestra en español)"}
+                  </span>
                 </button>
                 <div className="flex shrink-0 items-center">
                   <IconButton
@@ -166,6 +194,7 @@ export function LegendManager({
                       onClick={() => {
                         setEditingId(legend.id);
                         setEditingText(legend.text);
+                        setEditingTextEn(legend.textEn ?? "");
                       }}
                     >
                       <PencilIcon />

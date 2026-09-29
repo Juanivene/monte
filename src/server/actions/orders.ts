@@ -30,7 +30,7 @@ export async function updateOrderStatus(
   const order = await prisma.order.update({
     where: { id: orderId },
     data: { status: parsed.data.status },
-    select: { id: true, buyerName: true, buyerEmail: true, status: true },
+    select: { id: true, buyerName: true, buyerEmail: true, status: true, locale: true },
   });
 
   if (previous.status !== order.status) {
@@ -39,6 +39,7 @@ export async function updateOrderStatus(
       buyerName: order.buyerName,
       buyerEmail: order.buyerEmail,
       status: order.status,
+      locale: order.locale,
     });
   }
 

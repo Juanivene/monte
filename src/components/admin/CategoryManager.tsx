@@ -9,21 +9,23 @@ import { confirmToast } from "@/lib/confirm-toast";
 import { IconButton, PencilIcon, TrashIcon } from "./IconButton";
 import { createCategory, updateCategory, deleteCategory } from "@/server/actions/categories";
 
-type Category = { id: string; name: string; slug: string };
+type Category = { id: string; name: string; nameEn: string | null; slug: string };
 
 export function CategoryManager({ initialCategories }: { initialCategories: Category[] }) {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [nameEn, setNameEn] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingNameEn, setEditingNameEn] = useState("");
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    const result = await createCategory({ name });
+    const result = await createCategory({ name, nameEn });
     setSubmitting(false);
     if (!result.ok) {
       setError(result.error);
@@ -32,12 +34,13 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
     }
     toast.success("Categoría creada.");
     setName("");
+    setNameEn("");
     router.refresh();
   }
 
   async function handleUpdate(id: string) {
     if (!(await confirmToast("¿Guardar los cambios de esta categoría?"))) return;
-    const result = await updateCategory(id, { name: editingName });
+    const result = await updateCategory(id, { name: editingName, nameEn: editingNameEn });
     if (!result.ok) {
       setError(result.error);
       toast.error(result.error);
@@ -78,6 +81,15 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
             Agregar
           </Button>
         </div>
+        <Input
+          value={nameEn}
+          onChange={(e) => setNameEn(e.target.value)}
+          placeholder="En inglés (opcional). Ej: Tees"
+          aria-label="Nombre en inglés"
+          lang="en"
+          enterKeyHint="done"
+          className="mt-2"
+        />
         <FieldError message={error ?? undefined} />
       </form>
 
@@ -102,6 +114,15 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
                   onChange={(e) => setEditingName(e.target.value)}
                   aria-label="Nombre de la categoría"
                   autoFocus
+                  enterKeyHint="next"
+                  className="min-w-0 sm:flex-1"
+                />
+                <Input
+                  value={editingNameEn}
+                  onChange={(e) => setEditingNameEn(e.target.value)}
+                  aria-label="Nombre en inglés"
+                  placeholder="En inglés (opcional)"
+                  lang="en"
                   enterKeyHint="done"
                   className="min-w-0 sm:flex-1"
                 />
@@ -116,13 +137,20 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
               </form>
             ) : (
               <div className="flex items-center justify-between gap-3">
-                <span className="min-w-0 truncate text-base text-neutral-800 sm:text-sm">{cat.name}</span>
+                <span className="min-w-0 truncate text-base text-neutral-800 sm:text-sm">
+                  {cat.name}
+                  <span className="text-neutral-400">
+                    {" · "}
+                    {cat.nameEn || "sin inglés"}
+                  </span>
+                </span>
                 <div className="flex shrink-0 gap-1">
                   <IconButton
                     label={`Editar ${cat.name}`}
                     onClick={() => {
                       setEditingId(cat.id);
                       setEditingName(cat.name);
+                      setEditingNameEn(cat.nameEn ?? "");
                     }}
                   >
                     <PencilIcon />

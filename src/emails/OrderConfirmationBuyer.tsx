@@ -1,7 +1,9 @@
 import { Body, Head, Heading, Html, Preview, Text } from "@react-email/components";
+import { getDictionary, type Locale } from "@/i18n";
 import { container, ItemsTable, type EmailOrderItem } from "./shared";
 
 type Props = {
+  lang: Locale;
   buyerName: string;
   orderShortId: string;
   items: EmailOrderItem[];
@@ -10,33 +12,30 @@ type Props = {
 };
 
 export default function OrderConfirmationBuyer({
+  lang,
   buyerName,
   orderShortId,
   items,
   total,
   shippingSummary,
 }: Props) {
+  const t = getDictionary(lang).emails;
   return (
-    <Html>
+    <Html lang={lang}>
       <Head />
-      <Preview>Recibimos tu pedido #{orderShortId}</Preview>
+      <Preview>{t.confirmationSubject(orderShortId)}</Preview>
       <Body style={{ backgroundColor: "#ffffff" }}>
         <div style={container}>
-          <Heading style={{ fontSize: 20, marginBottom: 4 }}>¡Gracias por tu pedido, {buyerName}!</Heading>
-          <Text style={{ color: "#525252", fontSize: 14 }}>
-            Recibimos tu pedido <strong>#{orderShortId}</strong>. Te vamos a contactar por
-            WhatsApp para coordinar el pago y el envío.
-          </Text>
+          <Heading style={{ fontSize: 20, marginBottom: 4 }}>{t.confirmationTitle(buyerName)}</Heading>
+          <Text style={{ color: "#525252", fontSize: 14 }}>{t.confirmationBody(orderShortId)}</Text>
 
-          <ItemsTable items={items} total={total} />
+          <ItemsTable items={items} total={total} lang={lang} />
 
           <Text style={{ fontSize: 13, color: "#525252" }}>
-            <strong>Envío a:</strong> {shippingSummary}
+            <strong>{t.shipTo}</strong> {shippingSummary}
           </Text>
 
-          <Text style={{ fontSize: 12, color: "#a3a3a3", marginTop: 24 }}>
-            Si tenés alguna duda, respondé este email o escribinos por WhatsApp.
-          </Text>
+          <Text style={{ fontSize: 12, color: "#a3a3a3", marginTop: 24 }}>{t.questions}</Text>
         </div>
       </Body>
     </Html>

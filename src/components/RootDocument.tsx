@@ -1,7 +1,6 @@
-import type { Metadata, Viewport } from "next";
 import { Inter, Archivo } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import "./globals.css";
+import "@/app/globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -13,48 +12,12 @@ const archivo = Archivo({
   subsets: ["latin"],
 });
 
-const siteName = process.env.NEXT_PUBLIC_SITE_NAME ?? "Monte";
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const description =
-  "Indumentaria de diseño independiente. Buzos, remeras y accesorios hechos en Tucumán, en tiradas cortas.";
-
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: `${siteName} — Indumentaria de diseño independiente`,
-    template: `%s · ${siteName}`,
-  },
-  description,
-  openGraph: {
-    type: "website",
-    locale: "es_AR",
-    siteName,
-    title: siteName,
-    description,
-    images: [
-      {
-        url: "/lookbook/trio-muro.png",
-        width: 1179,
-        height: 1565,
-        alt: siteName,
-      },
-    ],
-  },
-  twitter: { card: "summary_large_image" },
-};
-
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f3ed" },
-    { media: "(prefers-color-scheme: dark)", color: "#131210" },
-  ],
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+/**
+ * <html> y <body> compartidos. La app tiene dos root layouts, la tienda
+ * (app/[lang], con el idioma en <html lang>) y el admin (siempre en español),
+ * y los dos arman el documento con esto.
+ */
+export function RootDocument({ lang, children }: { lang: string; children: React.ReactNode }) {
   return (
     // suppressHydrationWarning: next-themes fija data-theme en <html> con un
     // script que corre antes de hidratar, así que el atributo del servidor
@@ -67,7 +30,7 @@ export default function RootLayout({
     // Con el atributo, Next vuelve a manejarlo: instantáneo en navegación
     // de página, suave en los links con #hash (categorías, lookbook).
     <html
-      lang="es"
+      lang={lang}
       suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${archivo.variable} h-full antialiased`}
@@ -78,4 +41,3 @@ export default function RootLayout({
     </html>
   );
 }
-

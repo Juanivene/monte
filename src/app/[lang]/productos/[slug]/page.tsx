@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { buildContactWhatsAppLink } from "@/lib/whatsapp";
+import { getDictionary, hasLocale, localePath, pick, type Locale } from "@/i18n";
+import { languageAlternates } from "@/i18n/seo";
 import { ProductGallery } from "@/components/shop/ProductGallery";
 import { ColorSwatches } from "@/components/shop/ColorSwatches";
 import { AddToCartForm } from "@/components/shop/AddToCartForm";
@@ -32,37 +34,62 @@ function getProduct(slug: string) {
   });
 }
 
+/** Nombre, color y descripción en el idioma pedido (con el español de respaldo). */
+function localize(
+  lang: Locale,
+  product: {
+    name: string;
+    nameEn: string | null;
+    colorName: string | null;
+    colorNameEn: string | null;
+    description: string;
+    descriptionEn: string | null;
+  },
+) {
+  const name = pick(lang, product.name, product.nameEn);
+  const colorName = pick(lang, product.colorName, product.colorNameEn);
+  return {
+    name,
+    colorName,
+    description: pick(lang, product.description, product.descriptionEn),
+    title: colorName ? `${name} · ${colorName}` : name,
+  };
+}
+
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
+}: PageProps<"/[lang]/productos/[slug]">): Promise<Metadata> {
+  const { lang, slug } = await params;
+  if (!hasLocale(lang)) return {};
   const product = await getProduct(slug);
-  if (!product || !product.isActive) return { title: "Producto no encontrado" };
+  if (!product || !product.isActive) return { title: getDictionary(lang).meta.productNotFound };
 
-  const title = product.colorName ? `${product.name} · ${product.colorName}` : product.name;
+  const { title, description } = localize(lang, product);
 
   return {
     title,
-    description: product.description.slice(0, 160),
+    description: description.slice(0, 160),
+    alternates: languageAlternates(lang, `/productos/${slug}`),
     openGraph: {
       title,
-      description: product.description.slice(0, 160),
+      description: description.slice(0, 160),
       images: product.images[0] ? [{ url: product.images[0].url }] : undefined,
     },
   };
 }
 
-export default async function ProductPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
+export default async function ProductPage({ params }: PageProps<"/[lang]/productos/[slug]">) {
+  const { lang, slug } = await params;
+  if (!hasLocale(lang)) notFound();
+  const t = getDictionary(lang);
   const product = await getProduct(slug);
 
   if (!product || !product.isActive) notFound();
+
+  const { name, colorName, description, title } = localize(lang, product);
+  const categoryName = product.category
+    ? pick(lang, product.category.name, product.category.nameEn)
+    : null;
 
   const siblings = product.group?.products.filter((p) => p.id !== product.id) ?? [];
   const excludedIds = [product.id, ...siblings.map((s) => s.id)];
@@ -81,54 +108,54 @@ export default async function ProductPage({
     take: 4,
   });
 
-  const whatsappUrl = buildContactWhatsAppLink(
-    `¡Hola! Quería consultar por "${product.name}"${product.colorName ? ` (${product.colorName})` : ""}.`,
-  );
+  const whatsappUrl = buildContactWhatsAppLink(t.product.whatsappQuestion(title));
 
   return (
     <>
       <div className="container-page pt-6">
-        <nav aria-label="Migas de pan" className="eyebrow text-ink-muted flex gap-2">
-          <Link href="/" className="hover:text-ink transition-colors">
-            Inicio
+        <nav aria-label={t.product.breadcrumb} className="eyebrow text-ink-muted flex gap-2">
+          <Link href={localePath(lang, "/")} className="hover:text-ink transition-colors">
+            {t.product.home}
           </Link>
           <span aria-hidden="true">/</span>
           {product.category ? (
             <>
               <Link
-                href={`/?categoria=${product.category.slug}`}
+                href={localePath(lang, `/?categoria=${product.category.slug}`)}
                 className="hover:text-ink transition-colors"
               >
-                {product.category.name}
+                {categoryName}
               </Link>
               <span aria-hidden="true">/</span>
             </>
           ) : null}
-          <span className="text-ink truncate">{product.name}</span>
+          <span className="text-ink truncate">{name}</span>
         </nav>
       </div>
 
       <div className="container-page grid gap-10 py-8 lg:grid-cols-2 lg:items-start lg:gap-16 lg:py-12">
         <div className="lg:sticky lg:top-28">
-          <ProductGallery images={product.images} alt={product.name} />
+          <ProductGallery images={product.images} alt={name} />
         </div>
 
         <div className="lg:py-4">
-          {product.category && (
-            <p className="eyebrow text-ink-muted">{product.category.name}</p>
-          )}
+          {categoryName && <p className="eyebrow text-ink-muted">{categoryName}</p>}
 
-          <h1 className="headline mt-3 text-4xl sm:text-5xl">{product.name}</h1>
+          <h1 className="headline mt-3 text-4xl sm:text-5xl">{name}</h1>
 
-          <p className="text-ink mt-4 text-xl tabular-nums">{formatPrice(product.price)}</p>
-          <p className="text-ink-muted mt-1 text-xs">Precio final. El envío se coordina aparte.</p>
+          <p className="text-ink mt-4 text-xl tabular-nums">{formatPrice(product.price, lang)}</p>
+          <p className="text-ink-muted mt-1 text-xs">{t.product.finalPrice}</p>
 
           {siblings.length > 0 && (
             <div className="mt-9">
               <ColorSwatches
-                currentColorName={product.colorName}
+                lang={lang}
+                currentColorName={colorName}
                 currentImage={product.images[0]?.url}
-                siblings={siblings}
+                siblings={siblings.map((s) => ({
+                  ...s,
+                  colorName: pick(lang, s.colorName, s.colorNameEn),
+                }))}
               />
             </div>
           )}
@@ -139,7 +166,9 @@ export default async function ProductPage({
                 id: product.id,
                 slug: product.slug,
                 name: product.name,
+                nameEn: product.nameEn,
                 colorName: product.colorName,
+                colorNameEn: product.colorNameEn,
                 price: Number(product.price),
                 images: product.images.map((image) => ({ url: image.url })),
                 variants: product.variants.map((variant) => ({
@@ -151,20 +180,14 @@ export default async function ProductPage({
           </div>
 
           <div className="mt-10">
-            <Accordion title="Descripción" defaultOpen>
-              <p className="whitespace-pre-line">{product.description}</p>
+            <Accordion title={t.product.description} defaultOpen>
+              <p className="whitespace-pre-line">{description}</p>
             </Accordion>
-            <Accordion title="Envíos">
-              <p>
-                Despachamos dentro de las 24 h hábiles. Envíos a todo el país por correo y entrega
-                en moto dentro de CABA. El costo se coordina por WhatsApp junto con el pago.
-              </p>
+            <Accordion title={t.product.shippingTitle}>
+              <p>{t.product.shippingBody}</p>
             </Accordion>
-            <Accordion title="Cambios y devoluciones">
-              <p>
-                Tenés 30 días desde que recibís el pedido para cambiar el talle, siempre que la
-                prenda esté sin uso y con su etiqueta.
-              </p>
+            <Accordion title={t.product.returnsTitle}>
+              <p>{t.product.returnsBody}</p>
             </Accordion>
           </div>
 
@@ -175,7 +198,7 @@ export default async function ProductPage({
               rel="noopener noreferrer"
               className="eyebrow text-ink-muted link-underline hover:text-ink mt-8 inline-block transition-colors"
             >
-              ¿Dudas con el talle? Consultanos →
+              {t.product.sizeQuestion}
             </a>
           )}
         </div>
@@ -185,12 +208,12 @@ export default async function ProductPage({
         <section className="container-page py-16 sm:py-24">
           <Reveal>
             <div className="border-ink/12 flex items-end justify-between gap-4 border-b pb-6">
-              <h2 className="headline text-3xl sm:text-4xl">Seguí mirando</h2>
+              <h2 className="headline text-3xl sm:text-4xl">{t.product.keepBrowsing}</h2>
               <Link
-                href="/"
+                href={localePath(lang, "/")}
                 className="eyebrow text-ink-muted link-underline hover:text-ink transition-colors"
               >
-                Ver todo →
+                {t.product.viewAll}
               </Link>
             </div>
           </Reveal>
@@ -198,7 +221,7 @@ export default async function ProductPage({
           <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 sm:gap-x-6 xl:grid-cols-4">
             {related.map((item, i) => (
               <Reveal key={item.id} delay={i * 90}>
-                <ProductCard product={item} />
+                <ProductCard lang={lang} product={item} />
               </Reveal>
             ))}
           </div>

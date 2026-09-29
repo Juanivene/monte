@@ -9,6 +9,9 @@ const globalForSeed = globalThis as unknown as { mockSeeded?: boolean };
 type SeedProduct = {
   name: string;
   colorName?: string;
+  nameEn?: string;
+  colorNameEn?: string;
+  descriptionEn?: string;
   description: string;
   price: number;
   category: string;
@@ -22,6 +25,10 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Buzo Monte",
     colorName: "Negro",
+    nameEn: "Monte Hoodie",
+    colorNameEn: "Black",
+    descriptionEn:
+      "Oversized hoodie with eyelets, 380gsm combed cotton. Relaxed fit with ribbed cuffs and waistband.",
     group: "buzo-monte",
     category: "Buzos",
     price: 68,
@@ -37,6 +44,10 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Buzo Monte",
     colorName: "Teal",
+    nameEn: "Monte Hoodie",
+    colorNameEn: "Teal",
+    descriptionEn:
+      "Oversized hooded sweatshirt, 380gsm combed cotton. Relaxed fit with ribbed cuffs and waistband.",
     group: "buzo-monte",
     category: "Buzos",
     price: 68,
@@ -54,6 +65,9 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Remera Monte",
     colorName: "Negra",
+    nameEn: "Monte Tee",
+    colorNameEn: "Black",
+    descriptionEn: "Oversized tee in 220gsm combed cotton, crew neck.",
     group: "remera-monte",
     category: "Remeras",
     price: 32,
@@ -64,6 +78,9 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Remera Monte",
     colorName: "Verde",
+    nameEn: "Monte Tee",
+    colorNameEn: "Green",
+    descriptionEn: "Oversized tee in 220gsm combed cotton, crew neck.",
     group: "remera-monte",
     category: "Remeras",
     price: 32,
@@ -73,6 +90,7 @@ const PRODUCTS: SeedProduct[] = [
   },
   {
     name: "Tote Bag Monte",
+    nameEn: "Monte Tote Bag",
     category: "Accesorios",
     price: 22,
     description: "Tote de lona cruda de 12oz, asas reforzadas. Un solo tamaño.",
@@ -93,8 +111,13 @@ const PRODUCTS: SeedProduct[] = [
 
 function seedProducts() {
   const categoryIds = new Map<string, string>();
-  for (const name of ["Buzos", "Remeras", "Accesorios"]) {
-    const category = seedInsert("category", { name, slug: slugify(name) });
+  const categoryNamesEn: Record<string, string> = {
+    Buzos: "Hoodies",
+    Remeras: "Tees",
+    Accesorios: "Accessories",
+  };
+  for (const [name, nameEn] of Object.entries(categoryNamesEn)) {
+    const category = seedInsert("category", { name, nameEn, slug: slugify(name) });
     categoryIds.set(name, category.id);
   }
 
@@ -125,6 +148,9 @@ function seedProducts() {
       description: p.description,
       price: p.price,
       colorName: p.colorName ?? null,
+      nameEn: p.nameEn ?? null,
+      colorNameEn: p.colorNameEn ?? null,
+      descriptionEn: p.descriptionEn ?? null,
       isActive: p.isActive ?? true,
       categoryId: categoryIds.get(p.category) ?? null,
       groupId: groupId ?? null,
@@ -226,19 +252,19 @@ function seedOrders() {
   );
 }
 
-const ANNOUNCEMENT_LEGENDS = [
-  "Hecho en Tucumán",
-  "Envíos a todo el país",
-  "Tiradas cortas y numeradas",
-  "Cambios dentro de los 30 días",
-  "Coordinamos pago y envío por WhatsApp",
+const ANNOUNCEMENT_LEGENDS: [string, string][] = [
+  ["Hecho en Tucumán", "Made in Tucumán"],
+  ["Envíos a todo el país", "Nationwide shipping"],
+  ["Tiradas cortas y numeradas", "Small, numbered batches"],
+  ["Cambios dentro de los 30 días", "Exchanges within 30 days"],
+  ["Coordinamos pago y envío por WhatsApp", "Payment and shipping arranged over WhatsApp"],
 ];
 
 const HERO_LEGENDS = ["Monte", "Miami", "First Drop 2026"];
 
 function seedLegends() {
-  ANNOUNCEMENT_LEGENDS.forEach((text, order) => {
-    seedInsert("legend", { group: "ANNOUNCEMENT", text, order });
+  ANNOUNCEMENT_LEGENDS.forEach(([text, textEn], order) => {
+    seedInsert("legend", { group: "ANNOUNCEMENT", text, textEn, order });
   });
   HERO_LEGENDS.forEach((text, order) => {
     seedInsert("legend", { group: "HERO", text, order });

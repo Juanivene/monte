@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { useI18n } from "@/i18n/client";
 
 /** cuántas prendas se ven de entrada y cuántas suma el "Ver más" */
 const PAGE_SIZE = 8;
@@ -13,6 +14,7 @@ const PAGE_SIZE = 8;
  * no hay que serializar los productos (el precio es un Decimal de Prisma).
  */
 export function ProductGrid({ items }: { items: React.ReactNode[] }) {
+  const { t } = useI18n();
   // 0 = inicial, 1 = ya se usó "Ver más", 2 = todo desplegado
   const [step, setStep] = useState<0 | 1 | 2>(0);
 
@@ -29,13 +31,13 @@ export function ProductGrid({ items }: { items: React.ReactNode[] }) {
       {hasMore && (
         <div className="mt-14 flex flex-col items-center gap-4">
           <p className="eyebrow text-ink-muted tabular-nums">
-            Mostrando {visibleCount} de {items.length}
+            {t.catalog.showing(visibleCount, items.length)}
           </p>
           <Button
             variant="secondary"
             onClick={() => setStep(step === 0 ? 1 : 2)}
           >
-            {step === 0 ? "Ver más" : "Ver todos los productos"}
+            {step === 0 ? t.catalog.showMore : t.catalog.showAll}
           </Button>
         </div>
       )}

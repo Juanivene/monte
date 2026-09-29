@@ -1,14 +1,18 @@
 import Link from "next/link";
+import { getDictionary, localePath, type Locale } from "@/i18n";
 
 export function CategoryFilter({
+  lang,
   categories,
   active,
   total,
 }: {
+  lang: Locale;
   categories: { slug: string; name: string }[];
   active?: string;
   total: number;
 }) {
+  const t = getDictionary(lang);
   return (
     <div className="border-ink/12 flex items-end justify-between gap-6 border-b">
       <div className="scrollbar-none flex gap-7 overflow-x-auto">
@@ -16,13 +20,13 @@ export function CategoryFilter({
           #catalogo: estos pills ya viven en esa sección, pero sin el hash
           Next igual scrollea al top de la página (el Hero) en cada click.
         */}
-        <FilterLink href="/#catalogo" active={!active}>
-          Todo
+        <FilterLink href={localePath(lang, "/#catalogo")} active={!active}>
+          {t.header.all}
         </FilterLink>
         {categories.map((category) => (
           <FilterLink
             key={category.slug}
-            href={`/?categoria=${category.slug}#catalogo`}
+            href={localePath(lang, `/?categoria=${category.slug}#catalogo`)}
             active={active === category.slug}
           >
             {category.name}
@@ -31,7 +35,7 @@ export function CategoryFilter({
       </div>
 
       <p className="eyebrow text-ink-muted hidden shrink-0 pb-4 tabular-nums sm:block">
-        {total} {total === 1 ? "prenda" : "prendas"}
+        {t.catalog.items(total)}
       </p>
     </div>
   );
