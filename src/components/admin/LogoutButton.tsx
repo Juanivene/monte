@@ -4,7 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { logout } from "@/server/actions/auth";
 
-export function LogoutButton() {
+export function LogoutButton({
+  className = "px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100",
+}: {
+  className?: string;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -20,9 +24,9 @@ export function LogoutButton() {
       type="button"
       onClick={handleLogout}
       disabled={loading}
-      className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-50"
+      className={`rounded-lg font-medium disabled:opacity-50 ${className}`}
     >
-      Cerrar sesión
+      {loading ? "Cerrando sesión..." : "Cerrar sesión"}
     </button>
   );
 }

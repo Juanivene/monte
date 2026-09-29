@@ -49,7 +49,7 @@ export function DeleteProductButton({
         disabled={deleting}
         aria-label={productName ? `Eliminar ${productName}` : "Eliminar producto"}
         title="Eliminar"
-        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-neutral-500 hover:bg-red-50 active:bg-red-50 hover:text-red-600 disabled:opacity-40"
       >
         <TrashIcon />
       </button>

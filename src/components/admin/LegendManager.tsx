@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input, FieldError } from "@/components/ui/Field";
 import { confirmToast } from "@/lib/confirm-toast";
+import { IconButton, PencilIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from "./IconButton";
 import { createLegend, updateLegendText, deleteLegend, moveLegend } from "@/server/actions/legends";
 import type { LegendGroup } from "@prisma/client";
 
@@ -77,20 +78,21 @@ export function LegendManager({
   }
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <h2 className="text-sm font-medium text-neutral-900">{title}</h2>
+    <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
+      <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>
       {description && <p className="mt-1 text-xs text-neutral-500">{description}</p>}
 
-      <form onSubmit={handleCreate} className="mt-4 flex items-end gap-3">
-        <div className="flex-1">
-          <Input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Ej: Envíos a todo el país"
-            maxLength={120}
-          />
-        </div>
-        <Button type="submit" disabled={submitting || !text.trim()}>
+      <form onSubmit={handleCreate} className="mt-4 flex gap-2">
+        <Input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Ej: Envíos a todo el país"
+          aria-label="Nueva leyenda"
+          maxLength={120}
+          enterKeyHint="done"
+          className="min-w-0 flex-1"
+        />
+        <Button type="submit" disabled={submitting || !text.trim()} className="shrink-0">
           Agregar
         </Button>
       </form>
@@ -103,61 +105,77 @@ export function LegendManager({
           </li>
         )}
         {initialLegends.map((legend, index) => (
-          <li key={legend.id} className="flex items-center justify-between gap-3 px-4 py-3">
+          <li key={legend.id} className="py-2 pr-1 pl-3 sm:pl-4">
             {editingId === legend.id ? (
-              <>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleUpdate(legend.id);
+                }}
+                className="flex flex-col gap-2 py-1.5 pr-2 sm:flex-row sm:items-center"
+              >
                 <Input
                   value={editingText}
                   onChange={(e) => setEditingText(e.target.value)}
-                  className="max-w-xs"
+                  aria-label="Texto de la leyenda"
                   maxLength={120}
+                  autoFocus
+                  enterKeyHint="done"
+                  className="min-w-0 sm:flex-1"
                 />
-                <div className="flex gap-2">
-                  <Button type="button" variant="secondary" onClick={() => setEditingId(null)}>
+                <div className="grid grid-cols-2 gap-2 sm:flex">
+                  <Button type="button" variant="secondary" size="sm" onClick={() => setEditingId(null)}>
                     Cancelar
                   </Button>
-                  <Button type="button" onClick={() => handleUpdate(legend.id)}>
+                  <Button type="submit" size="sm" disabled={!editingText.trim()}>
                     Guardar
                   </Button>
                 </div>
-              </>
+              </form>
             ) : (
-              <>
-                <span className="text-sm text-neutral-800">{legend.text}</span>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
+              <div className="flex items-center gap-2">
+                {/* En teléfono tocar el texto ya abre la edición. */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingId(legend.id);
+                    setEditingText(legend.text);
+                  }}
+                  className="min-h-10 min-w-0 flex-1 text-left text-sm text-neutral-800"
+                >
+                  {legend.text}
+                </button>
+                <div className="flex shrink-0 items-center">
+                  <IconButton
+                    label="Mover arriba"
                     onClick={() => handleMove(legend.id, "up")}
                     disabled={index === 0}
-                    aria-label="Mover arriba"
-                    className="px-1.5 text-sm text-neutral-500 hover:text-neutral-900 disabled:opacity-30"
                   >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
+                    <ArrowUpIcon />
+                  </IconButton>
+                  <IconButton
+                    label="Mover abajo"
                     onClick={() => handleMove(legend.id, "down")}
                     disabled={index === initialLegends.length - 1}
-                    aria-label="Mover abajo"
-                    className="px-1.5 text-sm text-neutral-500 hover:text-neutral-900 disabled:opacity-30"
                   >
-                    ↓
-                  </button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      setEditingId(legend.id);
-                      setEditingText(legend.text);
-                    }}
-                  >
-                    Editar
-                  </Button>
-                  <Button type="button" variant="danger" onClick={() => handleDelete(legend.id)}>
-                    Eliminar
-                  </Button>
+                    <ArrowDownIcon />
+                  </IconButton>
+                  <span className="hidden sm:contents">
+                    <IconButton
+                      label="Editar"
+                      onClick={() => {
+                        setEditingId(legend.id);
+                        setEditingText(legend.text);
+                      }}
+                    >
+                      <PencilIcon />
+                    </IconButton>
+                  </span>
+                  <IconButton label="Eliminar" tone="danger" onClick={() => handleDelete(legend.id)}>
+                    <TrashIcon />
+                  </IconButton>
                 </div>
-              </>
+              </div>
             )}
           </li>
         ))}

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, FieldError } from "@/components/ui/Field";
 import { confirmToast } from "@/lib/confirm-toast";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { changePassword } from "@/server/actions/auth";
 
 export default function AdminSettingsPage() {
@@ -43,9 +44,12 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="max-w-sm">
-      <h1 className="text-xl font-semibold text-neutral-900">Cambiar contraseña</h1>
+      <PageHeader title="Cambiar contraseña" />
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 rounded-xl border border-neutral-200 bg-white p-4 sm:p-5"
+      >
         <div>
           <Label htmlFor="currentPassword">Contraseña actual</Label>
           <Input
@@ -84,7 +88,7 @@ export default function AdminSettingsPage() {
 
         <FieldError message={error ?? undefined} />
 
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
           {submitting ? "Guardando..." : "Guardar cambios"}
         </Button>
       </form>

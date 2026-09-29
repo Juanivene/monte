@@ -1,9 +1,19 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { OrdersTable } from "@/components/admin/OrdersTable";
+import { PageHeader } from "@/components/admin/PageHeader";
+import { STATUS_LABELS } from "@/components/admin/OrderStatusBadge";
 import type { OrderStatus } from "@prisma/client";
 
 const STATUSES: OrderStatus[] = ["PENDIENTE", "CONFIRMADO", "ENVIADO", "ENTREGADO", "CANCELADO"];
+
+function chipClass(active: boolean) {
+  return `inline-flex h-9 shrink-0 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap ${
+    active
+      ? "border-neutral-900 bg-neutral-900 text-white"
+      : "border-neutral-300 bg-white text-neutral-600 hover:border-neutral-500 active:bg-neutral-100"
+  }`;
+}
 
 export default async function AdminOrdersPage({
   searchParams,
@@ -20,30 +30,21 @@ export default async function AdminOrdersPage({
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-neutral-900">Pedidos</h1>
+      <PageHeader title="Pedidos" />
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Link
-          href="/admin/pedidos"
-          className={`rounded-full border px-3 py-1 text-xs font-medium ${
-            !status
-              ? "border-neutral-900 bg-neutral-900 text-white"
-              : "border-neutral-300 text-neutral-600 hover:border-neutral-500"
-          }`}
-        >
+      {/* En teléfono los filtros se deslizan de costado en vez de apilarse en varias filas. */}
+      <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+        <Link href="/admin/pedidos" scroll={false} className={chipClass(!status)}>
           Todos
         </Link>
         {STATUSES.map((s) => (
           <Link
             key={s}
             href={`/admin/pedidos?estado=${s}`}
-            className={`rounded-full border px-3 py-1 text-xs font-medium ${
-              status === s
-                ? "border-neutral-900 bg-neutral-900 text-white"
-                : "border-neutral-300 text-neutral-600 hover:border-neutral-500"
-            }`}
+            scroll={false}
+            className={chipClass(status === s)}
           >
-            {s}
+            {STATUS_LABELS[s]}
           </Link>
         ))}
       </div>

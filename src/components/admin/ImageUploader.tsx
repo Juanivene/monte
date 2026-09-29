@@ -73,44 +73,53 @@ export function ImageUploader({
 
   return (
     <div>
-      <div className="flex flex-wrap gap-3">
+      {/*
+        En teléfono: grilla de 3 con miniaturas grandes y los controles siempre
+        visibles (no hay hover). En desktop: fila de 96px con controles al pasar el mouse.
+      */}
+      <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
         {images.map((url, index) => (
           <div
             key={url}
-            className="group relative h-24 w-24 overflow-hidden rounded-lg border border-neutral-200"
+            className="group relative aspect-square overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 sm:h-24 sm:w-24"
           >
             {url.startsWith("blob:") ? (
               // el optimizador de next/image no acepta blob: URLs (preview local del modo mock)
               // eslint-disable-next-line @next/next/no-img-element
               <img src={url} alt="" className="h-full w-full object-cover" />
             ) : (
-              <Image src={url} alt="" fill sizes="96px" className="object-cover" />
+              <Image src={url} alt="" fill sizes="(min-width: 640px) 96px, 33vw" className="object-cover" />
             )}
-            <div className="absolute inset-x-0 bottom-0 flex justify-between bg-black/50 px-1 py-0.5 opacity-0 transition group-hover:opacity-100">
+            <button
+              type="button"
+              onClick={() => removeAt(index)}
+              aria-label="Quitar imagen"
+              className="absolute top-1 right-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-sm text-white transition sm:opacity-0 sm:group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+            >
+              ✕
+            </button>
+            <div className="absolute inset-x-0 bottom-0 flex bg-black/50 transition sm:opacity-0 sm:group-hover:opacity-100 [@media(hover:none)]:opacity-100">
               <button
                 type="button"
                 onClick={() => moveTo(index, -1)}
-                className="px-1 text-xs text-white"
+                disabled={index === 0}
+                aria-label="Mover a la izquierda"
+                className="h-8 flex-1 text-sm text-white disabled:opacity-30 sm:h-6 sm:text-xs"
               >
                 ←
               </button>
               <button
                 type="button"
-                onClick={() => removeAt(index)}
-                className="px-1 text-xs text-white"
-              >
-                ✕
-              </button>
-              <button
-                type="button"
                 onClick={() => moveTo(index, 1)}
-                className="px-1 text-xs text-white"
+                disabled={index === images.length - 1}
+                aria-label="Mover a la derecha"
+                className="h-8 flex-1 text-sm text-white disabled:opacity-30 sm:h-6 sm:text-xs"
               >
                 →
               </button>
             </div>
             {index === 0 && (
-              <span className="absolute left-1 top-1 rounded bg-white/90 px-1 text-[10px] font-medium">
+              <span className="absolute left-1 top-1 rounded bg-white/90 px-1.5 py-0.5 text-[10px] font-medium text-neutral-900">
                 Portada
               </span>
             )}
@@ -121,9 +130,10 @@ export function ImageUploader({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading || images.length >= 10}
-          className="flex h-24 w-24 flex-col items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500 hover:border-neutral-500 disabled:opacity-50"
+          className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500 hover:border-neutral-500 active:bg-neutral-100 disabled:opacity-50 sm:h-24 sm:w-24"
         >
-          {uploading ? "Subiendo..." : "+ Agregar"}
+          <span className="text-xl leading-none">{uploading ? "…" : "+"}</span>
+          {uploading ? "Subiendo..." : "Agregar fotos"}
         </button>
       </div>
       <input
@@ -134,6 +144,9 @@ export function ImageUploader({
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
+      <p className="mt-2 text-xs text-neutral-500">
+        La primera es la portada. Hasta 10 fotos.
+      </p>
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
     </div>
   );

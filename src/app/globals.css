@@ -272,3 +272,34 @@
     transform: none;
   }
 }
+
+/* -------------------------------------------------------------------------
+   Admin en mobile
+   ---------------------------------------------------------------------- */
+
+/** Oculta la barra de scroll en filas que se deslizan con el dedo. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * iOS hace zoom al enfocar cualquier campo con letra menor a 16px. En el
+ * admin por teléfono eso rompe el layout a cada rato, así que ahí los campos
+ * van a 16px (solo en pantallas chicas y solo dentro de .admin-shell: la
+ * tienda queda como está).
+ */
+@media (width < 40rem) {
+  .admin-shell :is(input, select, textarea) {
+    font-size: 1rem;
+  }
+}
+
+/* Sin el delay de doble tap ni el flash gris de Safari al tocar. */
+.admin-shell :is(a, button, label, select) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}

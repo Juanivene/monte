@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { ColorVariantLinker } from "@/components/admin/ColorVariantLinker";
 import { DeleteProductButton } from "@/components/admin/DeleteProductButton";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export default async function EditProductPage({
   params,
@@ -34,11 +35,12 @@ export default async function EditProductPage({
   });
 
   return (
-    <div className="max-w-3xl space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900">Editar producto</h1>
-        <DeleteProductButton productId={product.id} />
-      </div>
+    <div className="max-w-3xl space-y-4 sm:space-y-6">
+      <PageHeader
+        back={{ href: "/admin/productos", label: "Productos" }}
+        title={product.name}
+        subtitle={product.colorName ? `Color: ${product.colorName}` : "Editar producto"}
+      />
 
       <ProductForm
         productId={product.id}
@@ -61,6 +63,15 @@ export default async function EditProductPage({
         siblings={siblings}
         linkableProducts={linkableProducts}
       />
+
+      {/* Acción destructiva al final, lejos del pulgar mientras se edita. */}
+      <section className="rounded-xl border border-red-200 bg-white p-4 sm:p-5">
+        <h2 className="text-sm font-semibold text-neutral-900">Eliminar producto</h2>
+        <p className="mt-1 mb-4 text-sm text-neutral-500">
+          Deja de existir en la tienda y en el admin. No se puede deshacer.
+        </p>
+        <DeleteProductButton productId={product.id} productName={product.name} />
+      </section>
     </div>
   );
 }

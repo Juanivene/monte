@@ -93,31 +93,35 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
         {products.map((p) => {
           const totalStock = p.variants.reduce((sum, v) => sum + v.stock, 0);
           return (
-            <li key={p.id} className="flex items-center gap-3 px-4 py-3.5">
-              <div className="relative h-14 w-12 shrink-0 overflow-hidden rounded bg-neutral-100">
-                {p.images[0] && (
-                  <Image src={p.images[0].url} alt="" fill sizes="48px" className="object-cover" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-neutral-900">
-                  {p.name}
-                  {p.colorName ? ` · ${p.colorName}` : ""}
-                </p>
-                <p className="mt-0.5 truncate text-xs text-neutral-500">
-                  {p.category?.name ?? "Sin categoría"}
-                </p>
-                <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                  <span className="font-medium text-neutral-900">{formatPrice(p.price)}</span>
-                  <span className="text-neutral-500">Stock {totalStock}</span>
-                  <StatusBadge isActive={p.isActive} />
-                </div>
-              </div>
+            <li key={p.id} className="flex items-center gap-1 pr-1.5 active:bg-neutral-50">
               <Link
                 href={`/admin/productos/${p.id}`}
-                className="shrink-0 text-sm font-medium text-neutral-900 hover:underline"
+                aria-label={`Editar ${p.name}`}
+                className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-4"
               >
-                Editar
+                <div className="relative h-16 w-13 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
+                  {p.images[0] && (
+                    <Image src={p.images[0].url} alt="" fill sizes="52px" className="object-cover" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-neutral-900">
+                    {p.name}
+                    {p.colorName ? ` · ${p.colorName}` : ""}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-neutral-500">
+                    {p.category?.name ?? "Sin categoría"}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                    <span className="font-semibold text-neutral-900 tabular-nums">
+                      {formatPrice(p.price)}
+                    </span>
+                    <span className={totalStock === 0 ? "font-medium text-red-600" : "text-neutral-500"}>
+                      {totalStock === 0 ? "Sin stock" : `Stock ${totalStock}`}
+                    </span>
+                    <StatusBadge isActive={p.isActive} />
+                  </div>
+                </div>
               </Link>
               <DeleteProductButton productId={p.id} productName={p.name} iconOnly />
             </li>

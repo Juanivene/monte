@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, FieldError } from "@/components/ui/Field";
 import { confirmToast } from "@/lib/confirm-toast";
+import { IconButton, PencilIcon, TrashIcon } from "./IconButton";
 import { createCategory, updateCategory, deleteCategory } from "@/server/actions/categories";
 
 type Category = { id: string; name: string; slug: string };
@@ -60,22 +61,25 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
   }
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleCreate} className="flex items-end gap-3">
-        <div className="flex-1">
-          <Label htmlFor="new-category">Nueva categoría</Label>
+    <div className="space-y-5">
+      <form onSubmit={handleCreate}>
+        <Label htmlFor="new-category">Nueva categoría</Label>
+        <div className="flex gap-2">
           <Input
             id="new-category"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ej: Remeras"
+            autoCapitalize="sentences"
+            enterKeyHint="done"
+            className="min-w-0 flex-1"
           />
+          <Button type="submit" disabled={submitting || !name.trim()} className="shrink-0">
+            Agregar
+          </Button>
         </div>
-        <Button type="submit" disabled={submitting || !name.trim()}>
-          Agregar
-        </Button>
+        <FieldError message={error ?? undefined} />
       </form>
-      <FieldError message={error ?? undefined} />
 
       <ul className="divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
         {initialCategories.length === 0 && (
@@ -84,42 +88,50 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
           </li>
         )}
         {initialCategories.map((cat) => (
-          <li key={cat.id} className="flex items-center justify-between gap-3 px-4 py-3">
+          <li key={cat.id} className="px-4 py-2">
             {editingId === cat.id ? (
-              <>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleUpdate(cat.id);
+                }}
+                className="flex flex-col gap-2 py-1.5 sm:flex-row sm:items-center"
+              >
                 <Input
                   value={editingName}
                   onChange={(e) => setEditingName(e.target.value)}
-                  className="max-w-xs"
+                  aria-label="Nombre de la categoría"
+                  autoFocus
+                  enterKeyHint="done"
+                  className="min-w-0 sm:flex-1"
                 />
-                <div className="flex gap-2">
-                  <Button type="button" variant="secondary" onClick={() => setEditingId(null)}>
+                <div className="grid grid-cols-2 gap-2 sm:flex">
+                  <Button type="button" variant="secondary" size="sm" onClick={() => setEditingId(null)}>
                     Cancelar
                   </Button>
-                  <Button type="button" onClick={() => handleUpdate(cat.id)}>
+                  <Button type="submit" size="sm" disabled={!editingName.trim()}>
                     Guardar
                   </Button>
                 </div>
-              </>
+              </form>
             ) : (
-              <>
-                <span className="text-sm text-neutral-800">{cat.name}</span>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
+              <div className="flex items-center justify-between gap-3">
+                <span className="min-w-0 truncate text-base text-neutral-800 sm:text-sm">{cat.name}</span>
+                <div className="flex shrink-0 gap-1">
+                  <IconButton
+                    label={`Editar ${cat.name}`}
                     onClick={() => {
                       setEditingId(cat.id);
                       setEditingName(cat.name);
                     }}
                   >
-                    Editar
-                  </Button>
-                  <Button type="button" variant="danger" onClick={() => handleDelete(cat.id)}>
-                    Eliminar
-                  </Button>
+                    <PencilIcon />
+                  </IconButton>
+                  <IconButton label={`Eliminar ${cat.name}`} tone="danger" onClick={() => handleDelete(cat.id)}>
+                    <TrashIcon />
+                  </IconButton>
                 </div>
-              </>
+              </div>
             )}
           </li>
         ))}

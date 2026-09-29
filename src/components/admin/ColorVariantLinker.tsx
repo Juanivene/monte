@@ -54,21 +54,24 @@ export function ColorVariantLinker({
   }
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-4">
-      <h2 className="text-sm font-medium text-neutral-900">Variantes de color</h2>
+    <section className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
+      <h2 className="text-sm font-semibold text-neutral-900">Variantes de color</h2>
 
       {siblings.length > 0 ? (
         <ul className="mt-3 divide-y divide-neutral-200">
           {siblings.map((s) => (
-            <li key={s.id} className="flex items-center justify-between py-2 text-sm">
-              <Link href={`/admin/productos/${s.id}`} className="hover:underline">
+            <li key={s.id} className="flex items-center justify-between gap-3 text-sm">
+              <Link
+                href={`/admin/productos/${s.id}`}
+                className="flex min-h-11 min-w-0 flex-1 items-center truncate hover:underline"
+              >
                 {s.name}
                 {s.colorName ? ` · ${s.colorName}` : ""}
               </Link>
               <button
                 type="button"
                 onClick={() => handleUnlink(s.id)}
-                className="text-xs text-neutral-400 hover:text-red-600"
+                className="inline-flex min-h-10 shrink-0 items-center rounded-lg px-2 text-xs text-neutral-500 hover:text-red-600 active:bg-red-50"
               >
                 Desvincular
               </button>
@@ -82,8 +85,8 @@ export function ColorVariantLinker({
       )}
 
       {linkableProducts.length > 0 && (
-        <div className="mt-4 flex items-end gap-2">
-          <div className="flex-1">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="min-w-0 flex-1">
             <Select value={selected} onChange={(e) => setSelected(e.target.value)}>
               <option value="">Vincular producto existente...</option>
               {linkableProducts.map((p) => (

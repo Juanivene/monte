@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { buildContactWhatsAppLink } from "@/lib/whatsapp";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGrid } from "@/components/shop/ProductGrid";
 import { CategoryFilter } from "@/components/shop/CategoryFilter";
 import { Hero } from "@/components/shop/Hero";
 import { StoryStrip } from "@/components/shop/StoryStrip";
@@ -96,13 +97,15 @@ export default async function HomePage({
             />
           </div>
         ) : (
-          <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 sm:gap-x-6 xl:grid-cols-4">
-            {products.map((product, i) => (
+          // key: al cambiar de categoría la grilla vuelve a la primera tanda
+          <ProductGrid
+            key={categoria ?? "todo"}
+            items={products.map((product, i) => (
               <Reveal key={product.id} delay={(i % 4) * 90}>
                 <ProductCard product={product} eager={i < 4} />
               </Reveal>
             ))}
-          </div>
+          />
         )}
       </section>
 
