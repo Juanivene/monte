@@ -5,7 +5,8 @@ import { Toaster } from "sonner";
 import { prisma } from "@/lib/prisma";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { getSession } from "@/lib/session";
-import { hasLocale, pick } from "@/i18n";
+import { hasLocale } from "@/i18n";
+import { buildCategoryTree } from "@/lib/categories";
 import { LocaleProvider } from "@/i18n/client";
 import { resolveContent } from "@/lib/site-content/fields";
 import { getEditableContent } from "@/lib/site-content/get";
@@ -39,14 +40,11 @@ export default async function PreviewPage({ searchParams }: PageProps<"/admin/pr
   const [categories, stored] = await Promise.all([
     prisma.category.findMany({
       orderBy: { name: "asc" },
-      select: { slug: true, name: true, nameEn: true },
+      select: { id: true, slug: true, name: true, nameEn: true, parentId: true },
     }),
     getEditableContent(),
   ]);
-  const localizedCategories = categories.map((c) => ({
-    slug: c.slug,
-    name: pick(lang, c.name, c.nameEn),
-  }));
+  const localizedCategories = buildCategoryTree(categories, lang);
   const content = resolveContent(stored.draft, lang);
 
   return (

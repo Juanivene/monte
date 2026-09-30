@@ -39,7 +39,11 @@ type ImageSpec = {
 
 export const TEXT_FIELDS = {
   // Hero
-  "hero.eyebrow": { default: "Colección 01 · 2026", en: "Collection 01 · 2026", max: 60 },
+  "hero.eyebrow": {
+    default: "Colección 01 · 2026",
+    en: "Collection 01 · 2026",
+    max: 60,
+  },
   "hero.title": {
     default: "El monte\nestá en la\n*ciudad*",
     en: "The monte\nlives in the\n*city*",
@@ -53,13 +57,21 @@ export const TEXT_FIELDS = {
     max: 400,
     multiline: true,
   },
-  "hero.ctaPrimary": { default: "Ver colección", en: "Shop the collection", max: 30 },
+  "hero.ctaPrimary": {
+    default: "Ver colección",
+    en: "Shop the collection",
+    max: 30,
+  },
   "hero.ctaSecondary": { default: "Lookbook", en: "Lookbook", max: 30 },
-  "hero.stat1Label": { default: "Prendas activas", en: "Pieces available", max: 30 },
-  "hero.stat2Value": { default: "24h", en: "24h", max: 8 },
-  "hero.stat2Label": { default: "Despacho", en: "Dispatch", max: 30 },
-  "hero.stat3Value": { default: "30d", en: "30d", max: 8 },
-  "hero.stat3Label": { default: "Para cambios", en: "For exchanges", max: 30 },
+  "hero.stat1Label": {
+    default: "Prendas activas",
+    en: "Pieces available",
+    max: 30,
+  },
+  "hero.stat2Value": { default: "01", en: "01", max: 8 },
+  "hero.stat2Label": { default: "Colección", en: "Collection", max: 30 },
+  "hero.stat3Value": { default: "Miami", en: "Miami", max: 8 },
+  "hero.stat3Label": { default: "2026", en: "2026", max: 30 },
   "hero.side": { default: "Miami · 2026", en: "Miami · 2026", max: 40 },
 
   // Sobre Monte
@@ -85,11 +97,31 @@ export const TEXT_FIELDS = {
     multiline: true,
   },
   "story.fact1Title": { default: "Frisa 400g", en: "400g fleece", max: 40 },
-  "story.fact1Detail": { default: "Algodón peinado", en: "Combed cotton", max: 60 },
-  "story.fact2Title": { default: "Moldería oversize", en: "Oversized fit", max: 40 },
-  "story.fact2Detail": { default: "Del XS al XXL", en: "From XS to XXL", max: 60 },
-  "story.fact3Title": { default: "Ojales metálicos", en: "Metal eyelets", max: 40 },
-  "story.fact3Detail": { default: "Aplicados a mano", en: "Set by hand", max: 60 },
+  "story.fact1Detail": {
+    default: "Algodón peinado",
+    en: "Combed cotton",
+    max: 60,
+  },
+  "story.fact2Title": {
+    default: "Moldería oversize",
+    en: "Oversized fit",
+    max: 40,
+  },
+  "story.fact2Detail": {
+    default: "Del XS al XXL",
+    en: "From XS to XXL",
+    max: 60,
+  },
+  "story.fact3Title": {
+    default: "Ojales metálicos",
+    en: "Metal eyelets",
+    max: 40,
+  },
+  "story.fact3Detail": {
+    default: "Aplicados a mano",
+    en: "Set by hand",
+    max: 60,
+  },
 
   // Lookbook
   "lookbook.eyebrow": { default: "Lookbook", en: "Lookbook", max: 60 },
@@ -108,16 +140,26 @@ export const TEXT_FIELDS = {
   },
 
   // Beneficios
-  "values.1Title": { default: "Envíos a todo el país", en: "Nationwide shipping", max: 50 },
+  "values.1Title": {
+    default: "Envíos a todo el país",
+    en: "Nationwide shipping",
+    max: 50,
+  },
   "values.1Detail": {
-    default: "Despachamos dentro de las 24 h hábiles por correo o moto en CABA.",
+    default:
+      "Despachamos dentro de las 24 h hábiles por correo o moto en CABA.",
     en: "We ship within 24 business hours by mail, or by motorbike within Buenos Aires City.",
     max: 200,
     multiline: true,
   },
-  "values.2Title": { default: "Cambios sin vueltas", en: "Easy exchanges", max: 50 },
+  "values.2Title": {
+    default: "Cambios sin vueltas",
+    en: "Easy exchanges",
+    max: 50,
+  },
   "values.2Detail": {
-    default: "Tenés 30 días para cambiar el talle, siempre que la prenda esté sin uso.",
+    default:
+      "Tenés 30 días para cambiar el talle, siempre que la prenda esté sin uso.",
     en: "You have 30 days to exchange your size, as long as the piece is unworn.",
     max: 200,
     multiline: true,
@@ -129,9 +171,14 @@ export const TEXT_FIELDS = {
     max: 200,
     multiline: true,
   },
-  "values.4Title": { default: "Te asesoramos", en: "We're here to help", max: 50 },
+  "values.4Title": {
+    default: "Te asesoramos",
+    en: "We're here to help",
+    max: 50,
+  },
   "values.4Detail": {
-    default: "Si dudás con el talle, escribinos y lo vemos juntos antes de comprar.",
+    default:
+      "Si dudás con el talle, escribinos y lo vemos juntos antes de comprar.",
     en: "Not sure about your size? Message us and we'll figure it out together before you buy.",
     max: 200,
     multiline: true,
@@ -148,7 +195,11 @@ export const TEXT_FIELDS = {
   },
 
   // Footer
-  "footer.eyebrow": { default: "Tucumán · Argentina", en: "Tucumán · Argentina", max: 60 },
+  "footer.eyebrow": {
+    default: "Tucumán · Argentina",
+    en: "Tucumán · Argentina",
+    max: 60,
+  },
   "footer.claim": {
     default: "Tiradas cortas,\nhechas para largo usos",
     en: "Small batches,\nmade to last",
@@ -162,7 +213,11 @@ export const TEXT_FIELDS = {
     max: 300,
     multiline: true,
   },
-  "footer.help1": { default: "Envíos a todo el país", en: "Shipping across Argentina", max: 60 },
+  "footer.help1": {
+    default: "Envíos a todo el país",
+    en: "Shipping across Argentina",
+    max: 60,
+  },
   "footer.help2": {
     default: "Cambios dentro de los 30 días",
     en: "Exchanges within 30 days",
@@ -179,28 +234,57 @@ export const TEXT_FIELDS = {
     max: 200,
     url: true,
   },
-  "footer.madeIn": { default: "Made In Tucumán", en: "Made in Tucumán", max: 40 },
+  "footer.madeIn": {
+    default: "Made In Tucumán",
+    en: "Made in Tucumán",
+    max: 40,
+  },
 } as const satisfies Record<string, TextSpec>;
 
 export const IMAGE_FIELDS = {
   "hero.main": { label: "Hero · foto grande", default: shots.trioMuro, y: 30 },
   "hero.small": { label: "Hero · foto chica", default: shots.duoCafeCuadrada },
-  "story.main": { label: "Sobre Monte · foto grande", default: shots.buzoTealTorre03 },
-  "story.top": { label: "Sobre Monte · foto de arriba", default: shots.remerasArena },
-  "story.bottom": { label: "Sobre Monte · foto de abajo", default: shots.buzoNegroPorton },
+  "story.main": {
+    label: "Sobre Monte · foto grande",
+    default: shots.buzoTealTorre03,
+  },
+  "story.top": {
+    label: "Sobre Monte · foto de arriba",
+    default: shots.remerasArena,
+  },
+  "story.bottom": {
+    label: "Sobre Monte · foto de abajo",
+    default: shots.buzoNegroPorton,
+  },
   "lookbook.1": { label: "Lookbook · foto 1", default: shots.trioMuro },
   "lookbook.2": { label: "Lookbook · foto 2", default: shots.buzoTealPasaje },
   "lookbook.3": { label: "Lookbook · foto 3", default: shots.duoEscalinata },
   "lookbook.4": { label: "Lookbook · foto 4", default: shots.remerasArena },
-  "lookbook.5": { label: "Lookbook · foto 5", default: shots.buzoNegroViaducto01 },
+  "lookbook.5": {
+    label: "Lookbook · foto 5",
+    default: shots.buzoNegroViaducto01,
+  },
   "lookbook.6": { label: "Lookbook · foto 6", default: shots.totePlaya },
   "lookbook.7": { label: "Lookbook · foto 7", default: shots.buzoTealTorre01 },
   "lookbook.8": { label: "Lookbook · foto 8", default: shots.remeraVerdeMar },
   "lookbook.9": { label: "Lookbook · foto 9", default: shots.trioCalle },
-  "lookbook.10": { label: "Lookbook · foto 10", default: shots.remeraNegraRocas },
-  "lookbook.11": { label: "Lookbook · foto 11", default: shots.buzoNegroPorton },
-  "lookbook.12": { label: "Lookbook · foto 12", default: shots.buzoTealCochera },
-  "footer.bg": { label: "Footer · foto de fondo", default: shots.trioSenda, y: 35 },
+  "lookbook.10": {
+    label: "Lookbook · foto 10",
+    default: shots.remeraNegraRocas,
+  },
+  "lookbook.11": {
+    label: "Lookbook · foto 11",
+    default: shots.buzoNegroPorton,
+  },
+  "lookbook.12": {
+    label: "Lookbook · foto 12",
+    default: shots.buzoTealCochera,
+  },
+  "footer.bg": {
+    label: "Footer · foto de fondo",
+    default: shots.trioSenda,
+    y: 35,
+  },
 } as const satisfies Record<string, ImageSpec>;
 
 export type TextField = keyof typeof TEXT_FIELDS;
@@ -209,7 +293,9 @@ export type ImageField = keyof typeof IMAGE_FIELDS;
 export const TEXT_FIELD_KEYS = Object.keys(TEXT_FIELDS) as TextField[];
 export const IMAGE_FIELD_KEYS = Object.keys(IMAGE_FIELDS) as ImageField[];
 
-export const LOOKBOOK_FIELDS = IMAGE_FIELD_KEYS.filter((key) => key.startsWith("lookbook."));
+export const LOOKBOOK_FIELDS = IMAGE_FIELD_KEYS.filter((key) =>
+  key.startsWith("lookbook."),
+);
 
 export function textSpec(field: TextField): TextSpec {
   return TEXT_FIELDS[field];
@@ -271,10 +357,14 @@ export type SiteContent = {
 };
 
 /** Combina los cambios (ya validados) con los defaults del idioma. */
-export function resolveContent(overrides: ContentOverrides, lang: Locale): SiteContent {
+export function resolveContent(
+  overrides: ContentOverrides,
+  lang: Locale,
+): SiteContent {
   const text = {} as Record<TextField, string>;
   for (const field of TEXT_FIELD_KEYS) {
-    text[field] = overrides[textKeyFor(field, lang)]?.[field] ?? defaultText(field, lang);
+    text[field] =
+      overrides[textKeyFor(field, lang)]?.[field] ?? defaultText(field, lang);
   }
 
   const image = {} as Record<ImageField, ResolvedImage>;
@@ -293,7 +383,9 @@ export function resolveImage(
   const spec: ImageSpec = IMAGE_FIELDS[field];
   const hasUpload = Boolean(override?.url && override.width && override.height);
   const alt =
-    lang === "en" ? (override?.altEn ?? spec.default.altEn) : (override?.alt ?? spec.default.alt);
+    lang === "en"
+      ? (override?.altEn ?? spec.default.altEn)
+      : (override?.alt ?? spec.default.alt);
   return {
     src: hasUpload ? override!.url! : spec.default.src,
     width: hasUpload ? override!.width! : spec.default.src.width,
@@ -315,7 +407,8 @@ export function isAllowedImageUrl(url: string, allowBlob: boolean): boolean {
     const { protocol, hostname } = new URL(url);
     return (
       protocol === "https:" &&
-      (hostname.endsWith(".r2.dev") || hostname.endsWith(".public.blob.vercel-storage.com"))
+      (hostname.endsWith(".r2.dev") ||
+        hostname.endsWith(".public.blob.vercel-storage.com"))
     );
   } catch {
     return false;
@@ -323,7 +416,10 @@ export function isAllowedImageUrl(url: string, allowBlob: boolean): boolean {
 }
 
 /** Comparación estable (sin importar el orden de las claves) para saber si hay cambios sin publicar. */
-export function sameOverrides(a: ContentOverrides, b: ContentOverrides): boolean {
+export function sameOverrides(
+  a: ContentOverrides,
+  b: ContentOverrides,
+): boolean {
   return stableStringify(a) === stableStringify(b);
 }
 
@@ -335,9 +431,16 @@ function stableStringify(value: unknown): string {
       .sort(([a], [b]) => a.localeCompare(b));
     // Un grupo vacío ({text: {}}) equivale a no tenerlo.
     const nonEmpty = entries.filter(
-      ([, v]) => !(v && typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0),
+      ([, v]) =>
+        !(
+          v &&
+          typeof v === "object" &&
+          !Array.isArray(v) &&
+          Object.keys(v).length === 0
+        ),
     );
     return `{${nonEmpty.map(([k, v]) => `${JSON.stringify(k)}:${stableStringify(v)}`).join(",")}}`;
   }
   return JSON.stringify(value);
 }
+

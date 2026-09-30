@@ -23,6 +23,7 @@ const en: Dictionary = {
     home: (site) => `${site} — home`,
     openMenu: "Open menu",
     closeMenu: "Close menu",
+    subcategories: (name) => `Subcategories of ${name}`,
     languageLabel: "Language",
     switchLabel: "Ver el sitio en español",
   },

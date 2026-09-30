@@ -33,6 +33,8 @@ export const categorySchema = z.object({
   name: z.string().trim().min(2, "El nombre es muy corto").max(80),
   /** Opcional: vacío, la tienda en inglés muestra el nombre en español. */
   nameEn: z.string().trim().max(80).optional().or(z.literal("")),
+  /** Vacío o ausente: categoría principal. Con id: subcategoría de esa categoría. */
+  parentId: z.string().min(1).optional().or(z.literal("")),
 });
 
 export type CategoryInput = z.infer<typeof categorySchema>;

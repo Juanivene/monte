@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { flattenForSelect } from "@/lib/categories";
 import { usePathname, useRouter } from "next/navigation";
 import { Input, Select } from "@/components/ui/Field";
 import {
@@ -27,7 +28,7 @@ export function ProductFilters({
   initialStatus,
   initialSort,
 }: {
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; parentId: string | null }[];
   initialQuery: string;
   initialCategoryId: string;
   initialStatus: ProductStatusFilter;
@@ -149,9 +150,9 @@ export function ProductFilters({
             className="col-span-2 w-full sm:col-span-1"
           >
             <option value="">Todas las categorías</option>
-            {categories.map((category) => (
+            {flattenForSelect(categories).map((category) => (
               <option key={category.id} value={category.id}>
-                {category.name}
+                {category.label}
               </option>
             ))}
           </Select>

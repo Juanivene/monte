@@ -39,6 +39,8 @@ const RELATIONS: Record<ModelName, Record<string, RelationDef>> = {
   admin: {},
   category: {
     products: { kind: "hasMany", foreignKey: "categoryId", target: "product" },
+    parent: { kind: "belongsTo", foreignKey: "parentId", target: "category" },
+    children: { kind: "hasMany", foreignKey: "parentId", target: "category" },
   },
   product: {
     category: { kind: "belongsTo", foreignKey: "categoryId", target: "category" },
@@ -249,6 +251,11 @@ function cascadeOnDelete(model: ModelName, removed: Doc) {
   } else if (model === "category") {
     for (const p of store.product) {
       if (p.categoryId === removed.id) p.categoryId = null;
+    }
+    // onDelete: Cascade sobre las subcategorías
+    for (const child of store.category.filter((c) => c.parentId === removed.id)) {
+      store.category = store.category.filter((c) => c.id !== child.id);
+      cascadeOnDelete("category", child);
     }
   } else if (model === "productGroup") {
     for (const p of store.product) {

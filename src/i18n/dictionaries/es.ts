@@ -24,6 +24,7 @@ const es = {
     home: (site: string) => `${site} — inicio`,
     openMenu: "Abrir menú",
     closeMenu: "Cerrar menú",
+    subcategories: (name: string) => `Subcategorías de ${name}`,
     languageLabel: "Idioma",
     // En el idioma de destino: es lo que entiende quien lo está buscando.
     switchLabel: "View this site in English",
