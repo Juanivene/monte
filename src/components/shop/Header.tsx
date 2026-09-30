@@ -8,8 +8,9 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useI18n } from "@/i18n/client";
 import { localePath } from "@/i18n/config";
 import { LanguageSwitcher } from "@/components/shop/LanguageSwitcher";
+import type { CategoryNode } from "@/lib/categories";
 
-export type HeaderCategory = { slug: string; name: string };
+export type HeaderCategory = CategoryNode;
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Monte";
 
@@ -23,6 +24,8 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const activeCategory = pathname === home ? searchParams.get("categoria") : null;
+  const isActive = (category: HeaderCategory) =>
+    activeCategory === category.slug || category.children.some((c) => c.slug === activeCategory);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -91,14 +94,37 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
                 {t.header.all}
               </Link>
               {categories.map((category) => (
-                <Link
-                  key={category.slug}
-                  href={localePath(lang, `/?categoria=${category.slug}#catalogo`)}
-                  data-active={activeCategory === category.slug}
-                  className="link-underline text-ink-soft hover:text-ink text-[0.8rem] font-medium tracking-wide transition-colors"
-                >
-                  {category.name}
-                </Link>
+                <div key={category.slug} className="group relative">
+                  <Link
+                    href={localePath(lang, `/?categoria=${category.slug}#catalogo`)}
+                    data-active={isActive(category)}
+                    className="link-underline text-ink-soft hover:text-ink text-[0.8rem] font-medium tracking-wide transition-colors"
+                  >
+                    {category.name}
+                  </Link>
+                  {/*
+                    Subcategorías: se abren con hover o con foco de teclado. El
+                    pt-4 hace de puente para que el menú no se cierre al bajar el mouse.
+                  */}
+                  {category.children.length > 0 && (
+                    <div className="pointer-events-none invisible absolute left-1/2 top-full z-10 -translate-x-1/2 pt-4 opacity-0 transition-opacity duration-200 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100">
+                      <ul className="border-ink/10 bg-bone/95 min-w-44 border py-2 shadow-sm backdrop-blur-md">
+                        {category.children.map((sub) => (
+                          <li key={sub.slug}>
+                            <Link
+                              href={localePath(lang, `/?categoria=${sub.slug}#catalogo`)}
+                              className={`hover:bg-bone-dark hover:text-ink block whitespace-nowrap px-5 py-2.5 text-[0.8rem] tracking-wide transition-colors ${
+                                activeCategory === sub.slug ? "text-ink font-medium" : "text-ink-soft"
+                              }`}
+                            >
+                              {sub.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               ))}
               <Link
                 href={localePath(lang, "/#lookbook")}
@@ -157,18 +183,27 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
       >
         <nav className="container-page flex flex-col gap-1 pb-16 pt-28">
           {[
-            { href: localePath(lang, "/#catalogo"), label: t.header.all },
-            ...categories.map((category) => ({
-              href: localePath(lang, `/?categoria=${category.slug}#catalogo`),
-              label: category.name,
-            })),
-            { href: localePath(lang, "/#lookbook"), label: t.header.lookbook },
-            { href: localePath(lang, "/carrito"), label: t.header.cart },
+            { href: localePath(lang, "/#catalogo"), label: t.header.all, sub: false },
+            ...categories.flatMap((category) => [
+              {
+                href: localePath(lang, `/?categoria=${category.slug}#catalogo`),
+                label: category.name,
+                sub: false,
+              },
+              ...category.children.map((sub) => ({
+                href: localePath(lang, `/?categoria=${sub.slug}#catalogo`),
+                label: sub.name,
+                sub: true,
+              })),
+            ]),
+            { href: localePath(lang, "/#lookbook"), label: t.header.lookbook, sub: false },
+            { href: localePath(lang, "/carrito"), label: t.header.cart, sub: false },
           ].map((item, i) => (
             <MobileLink
               key={item.href}
               href={item.href}
               label={item.label}
+              sub={item.sub}
               index={i}
               open={menuOpen}
               onNavigate={() => setMenuOpen(false)}
@@ -183,12 +218,14 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
 function MobileLink({
   href,
   label,
+  sub,
   index,
   open,
   onNavigate,
 }: {
   href: string;
   label: string;
+  sub: boolean;
   index: number;
   open: boolean;
   onNavigate: () => void;
@@ -198,7 +235,9 @@ function MobileLink({
       href={href}
       onClick={onNavigate}
       tabIndex={open ? undefined : -1}
-      className={`border-ink/10 headline text-ink active:text-accent-deep border-b py-5 text-4xl transition-[opacity,transform] duration-600 ease-out ${
+      className={`border-ink/10 headline active:text-accent-deep border-b transition-[opacity,transform] duration-600 ease-out ${
+        sub ? "text-ink-soft py-3.5 pl-6 text-2xl" : "text-ink py-5 text-4xl"
+      } ${
         open ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
       }`}
       style={{ transitionDelay: open ? `${80 + index * 55}ms` : "0ms" }}

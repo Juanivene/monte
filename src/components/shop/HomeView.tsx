@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { buildContactWhatsAppLink } from "@/lib/whatsapp";
 import type { SiteContent } from "@/lib/site-content/fields";
 import { getDictionary, pick, type Locale } from "@/i18n";
+import { buildCategoryTree, resolveActiveCategory } from "@/lib/categories";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { CategoryFilter } from "@/components/shop/CategoryFilter";
@@ -27,12 +28,17 @@ export async function HomeView({
   content: SiteContent;
 }) {
   const t = getDictionary(lang);
-  const [categories, products, totalActive, heroLegends] = await Promise.all([
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
+  // Las categorías van primero: elegir una incluye los productos de sus subcategorías.
+  const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
+  const tree = buildCategoryTree(categories, lang);
+  const active = resolveActiveCategory(tree, categoria);
+
+  const [products, totalActive, heroLegends] = await Promise.all([
     prisma.product.findMany({
       where: {
         isActive: true,
-        ...(categoria ? { category: { slug: categoria } } : {}),
+        // slug desconocido: sin resultados, igual que antes
+        ...(categoria ? { categoryId: { in: active?.ids ?? [] } } : {}),
       },
       include: {
         // dos imágenes: portada + la que aparece al pasar el mouse
@@ -45,11 +51,7 @@ export async function HomeView({
     prisma.legend.findMany({ where: { group: "HERO" }, orderBy: { order: "asc" } }),
   ]);
 
-  const localizedCategories = categories.map((c) => ({
-    slug: c.slug,
-    name: pick(lang, c.name, c.nameEn),
-  }));
-  const activeCategory = localizedCategories.find((c) => c.slug === categoria);
+  const activeCategory = active?.current;
   const whatsappUrl = buildContactWhatsAppLink(t.whatsapp.contact);
 
   return (
@@ -86,7 +88,7 @@ export async function HomeView({
 
           <CategoryFilter
             lang={lang}
-            categories={localizedCategories}
+            categories={tree}
             active={categoria}
             total={products.length}
           />

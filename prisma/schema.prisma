@@ -52,6 +52,14 @@ model Category {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   products  Product[]
+
+  /// Subcategorías: un solo nivel (una subcategoría no tiene hijas). Borrar la
+  /// categoría borra sus subcategorías; los productos quedan sin categoría.
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Category[] @relation("CategoryTree")
+
+  @@index([parentId])
 }
 
 /// Agrupa productos que son el mismo diseño en distintos colores.

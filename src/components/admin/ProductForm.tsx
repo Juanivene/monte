@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { flattenForSelect } from "@/lib/categories";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
@@ -10,7 +11,7 @@ import { ImageUploader } from "./ImageUploader";
 import { SIZES, type Size } from "@/types";
 import { createProduct, updateProduct, createColorVariant } from "@/server/actions/products";
 
-type Category = { id: string; name: string };
+type Category = { id: string; name: string; parentId: string | null };
 type OtherProduct = { id: string; name: string; colorName: string | null };
 
 type InitialProduct = {
@@ -192,9 +193,9 @@ export function ProductForm({
             <Label htmlFor="category">Categoría</Label>
             <Select id="category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
               <option value="">Sin categoría</option>
-              {categories.map((c) => (
+              {flattenForSelect(categories).map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name}
+                  {c.label}
                 </option>
               ))}
             </Select>
@@ -283,7 +284,7 @@ export function ProductForm({
 
       <section className={sectionClass}>
         <h2 className={sectionTitleClass}>Stock por talle</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {SIZES.map((size) => (
             <div key={size}>
               <label htmlFor={`stock-${size}`} className="mb-1 block text-xs font-medium text-neutral-600">
@@ -309,7 +310,7 @@ export function ProductForm({
                   onChange={(e) =>
                     setVariants((prev) => ({ ...prev, [size]: Number(e.target.value) || 0 }))
                   }
-                  className="min-w-0 text-center tabular-nums"
+                  className="min-w-0 rounded-none px-1 text-center tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <button
                   type="button"

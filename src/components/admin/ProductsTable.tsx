@@ -9,10 +9,16 @@ export type ProductRow = {
   colorName: string | null;
   price: number | string | { toString(): string };
   isActive: boolean;
-  category: { name: string } | null;
+  category: { name: string; parent?: { name: string } | null } | null;
   images: { url: string }[];
   variants: { stock: number }[];
 };
+
+/** "Remeras / Manga larga" para una subcategoría, "Remeras" para una categoría. */
+function categoryLabel(category: ProductRow["category"]) {
+  if (!category) return null;
+  return category.parent ? `${category.parent.name} / ${category.name}` : category.name;
+}
 
 function StatusBadge({ isActive }: { isActive: boolean }) {
   return isActive ? (
@@ -65,7 +71,7 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
                     {p.name}
                     {p.colorName ? ` · ${p.colorName}` : ""}
                   </td>
-                  <td className="px-4 py-3 text-neutral-600">{p.category?.name ?? "—"}</td>
+                  <td className="px-4 py-3 text-neutral-600">{categoryLabel(p.category) ?? "—"}</td>
                   <td className="px-4 py-3">{formatPrice(p.price)}</td>
                   <td className="px-4 py-3">{totalStock}</td>
                   <td className="px-4 py-3">
@@ -110,7 +116,7 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
                     {p.colorName ? ` · ${p.colorName}` : ""}
                   </p>
                   <p className="mt-0.5 truncate text-xs text-neutral-500">
-                    {p.category?.name ?? "Sin categoría"}
+                    {categoryLabel(p.category) ?? "Sin categoría"}
                   </p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                     <span className="font-semibold text-neutral-900 tabular-nums">

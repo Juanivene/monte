@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { Toaster } from "sonner";
 import { prisma } from "@/lib/prisma";
 import { getPublishedContent } from "@/lib/site-content/get";
-import { getDictionary, hasLocale, localeTags, locales, pick } from "@/i18n";
+import { getDictionary, hasLocale, localeTags, locales } from "@/i18n";
+import { buildCategoryTree } from "@/lib/categories";
 import { LocaleProvider } from "@/i18n/client";
 import { RootDocument } from "@/components/RootDocument";
 import { Header } from "@/components/shop/Header";
@@ -58,14 +59,11 @@ export default async function ShopLayout({ children, params }: LayoutProps<"/[la
   const [categories, content] = await Promise.all([
     prisma.category.findMany({
       orderBy: { name: "asc" },
-      select: { slug: true, name: true, nameEn: true },
+      select: { id: true, slug: true, name: true, nameEn: true, parentId: true },
     }),
     getPublishedContent(lang),
   ]);
-  const localizedCategories = categories.map((c) => ({
-    slug: c.slug,
-    name: pick(lang, c.name, c.nameEn),
-  }));
+  const localizedCategories = buildCategoryTree(categories, lang);
 
   return (
     <RootDocument lang={localeTags[lang].html}>

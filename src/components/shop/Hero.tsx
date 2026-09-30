@@ -5,9 +5,17 @@ import { Reveal } from "@/components/ui/Reveal";
 import { EditableImage } from "@/components/site-editor/EditableImage";
 import { EditableText } from "@/components/site-editor/EditableText";
 
-export function Hero({ productCount, content }: { productCount: number; content: SiteContent }) {
+export function Hero({
+  productCount,
+  content,
+}: {
+  productCount: number;
+  content: SiteContent;
+}) {
   const { text, image } = content;
-  const t = (field: TextField) => <EditableText field={field} value={text[field]} />;
+  const t = (field: TextField) => (
+    <EditableText field={field} value={text[field]} />
+  );
 
   return (
     <section className="relative overflow-hidden pb-14 pt-6 sm:pt-10 lg:pb-24">
@@ -37,12 +45,20 @@ export function Hero({ productCount, content }: { productCount: number; content:
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link href="#catalogo">
                 <Button size="lg">
-                  <EditableText field="hero.ctaPrimary" value={text["hero.ctaPrimary"]} popover />
+                  <EditableText
+                    field="hero.ctaPrimary"
+                    value={text["hero.ctaPrimary"]}
+                    popover
+                  />
                 </Button>
               </Link>
               <Link href="#lookbook">
                 <Button size="lg" variant="secondary">
-                  <EditableText field="hero.ctaSecondary" value={text["hero.ctaSecondary"]} popover />
+                  <EditableText
+                    field="hero.ctaSecondary"
+                    value={text["hero.ctaSecondary"]}
+                    popover
+                  />
                 </Button>
               </Link>
             </div>
@@ -86,7 +102,11 @@ export function Hero({ productCount, content }: { productCount: number; content:
             </div>
 
             <span className="eyebrow text-ink-muted absolute -right-2 top-6 hidden origin-right -rotate-90 lg:block">
-              <EditableText field="hero.side" value={text["hero.side"]} popover />
+              <EditableText
+                field="hero.side"
+                value={text["hero.side"]}
+                popover
+              />
             </span>
           </div>
         </div>
@@ -95,11 +115,19 @@ export function Hero({ productCount, content }: { productCount: number; content:
   );
 }
 
-function Stat({ value, label }: { value: React.ReactNode; label: React.ReactNode }) {
+function Stat({
+  value,
+  label,
+}: {
+  value: React.ReactNode;
+  label: React.ReactNode;
+}) {
   return (
     <div>
       <dt className="headline text-ink text-2xl">{value}</dt>
-      <dd className="text-ink-muted mt-1 text-[0.7rem] leading-tight">{label}</dd>
+      <dd className="text-ink-muted mt-1 text-[0.7rem] leading-tight">
+        {label}
+      </dd>
     </div>
   );
 }

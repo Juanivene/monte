@@ -21,7 +21,7 @@ function getProduct(slug: string) {
     include: {
       images: { orderBy: { order: "asc" } },
       variants: true,
-      category: true,
+      category: { include: { parent: true } },
       group: {
         include: {
           products: {
@@ -118,6 +118,17 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/product
             {t.product.home}
           </Link>
           <span aria-hidden="true">/</span>
+          {product.category?.parent ? (
+            <>
+              <Link
+                href={localePath(lang, `/?categoria=${product.category.parent.slug}`)}
+                className="hover:text-ink transition-colors"
+              >
+                {pick(lang, product.category.parent.name, product.category.parent.nameEn)}
+              </Link>
+              <span aria-hidden="true">/</span>
+            </>
+          ) : null}
           {product.category ? (
             <>
               <Link

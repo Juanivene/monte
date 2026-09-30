@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { ProductFilters } from "@/components/admin/ProductFilters";
 import { ProductsTable } from "@/components/admin/ProductsTable";
 import { Pagination } from "@/components/admin/Pagination";
+import { categoryScopeIds } from "@/lib/categories";
 import { pageRange, parsePage, redirectIfPageOutOfRange } from "@/lib/pagination";
 import {
   PRODUCT_SORT_ORDER_BY,
@@ -25,28 +26,30 @@ export default async function AdminProductsPage({
   const status = parseProductStatus(estado);
   const sort = parseProductSort(orden);
 
+  const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
+
   // El filtrado se resuelve acá, en el where de la consulta: nunca se trae
-  // todo el catálogo al front para filtrarlo ahí.
+  // todo el catálogo al front para filtrarlo ahí. Filtrar por una categoría
+  // incluye los productos de sus subcategorías.
   const where: Prisma.ProductWhereInput = {
     ...(query ? { name: { contains: query, mode: "insensitive" } } : {}),
-    ...(categoria ? { categoryId: categoria } : {}),
+    ...(categoria ? { categoryId: { in: categoryScopeIds(categories, categoria) } } : {}),
     ...(status ? { isActive: status === "activos" } : {}),
   };
 
   // Solo se trae la página pedida; el count (con el mismo where) arma la paginación.
-  const [products, total, categories] = await Promise.all([
+  const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
       include: {
         images: { orderBy: { order: "asc" }, take: 1 },
-        category: true,
+        category: { include: { parent: true } },
         variants: true,
       },
       orderBy: PRODUCT_SORT_ORDER_BY[sort],
       ...pageRange(page),
     }),
     prisma.product.count({ where }),
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   redirectIfPageOutOfRange(page, total, "/admin/productos", params);
