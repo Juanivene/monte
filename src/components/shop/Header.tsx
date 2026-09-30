@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
@@ -14,6 +14,16 @@ export type HeaderCategory = CategoryNode;
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Monte";
 
+/** Estado del panel de subcategorías de escritorio: se abre con hover o con foco de teclado. */
+const dropdownOpen = "group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100";
+const dropdownPanelOpen =
+  "group-hover:translate-y-0 group-hover:scale-100 group-focus-within:translate-y-0 group-focus-within:scale-100";
+const dropdownItemOpen =
+  "group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:translate-x-0 group-focus-within:opacity-100";
+
+/** Tope del escalonado de la entrada del menú móvil: con muchas categorías no se hace eterno. */
+const MAX_STAGGER = 8;
+
 export function Header({ categories }: { categories: HeaderCategory[] }) {
   const { itemCount, isHydrated } = useCart();
   const { lang, t } = useI18n();
@@ -22,10 +32,19 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
   const searchParams = useSearchParams();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // categoría principal con las subcategorías desplegadas en el menú móvil (una a la vez)
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const activeCategory = pathname === home ? searchParams.get("categoria") : null;
   const isActive = (category: HeaderCategory) =>
     activeCategory === category.slug || category.children.some((c) => c.slug === activeCategory);
+
+  function openMenu() {
+    // al abrir, ya se ve desplegada la categoría en la que estás
+    setExpanded(categories.find(isActive)?.slug ?? null);
+    setMenuOpen(true);
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -35,7 +54,8 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
   }, []);
 
   // El menú móvil tapa toda la pantalla: mientras está abierto no se scrollea el
-  // fondo, y Escape lo cierra.
+  // fondo, Escape lo cierra (devolviendo el foco al botón) y si la pantalla pasa
+  // a ser de escritorio (rotar la tablet) se cierra solo.
   useEffect(() => {
     if (!menuOpen) return;
 
@@ -43,15 +63,27 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
     document.body.style.overflow = "hidden";
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
+
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const onBreakpoint = (event: MediaQueryListEvent) => {
+      if (event.matches) setMenuOpen(false);
+    };
+    desktop.addEventListener("change", onBreakpoint);
 
     return () => {
       document.body.style.overflow = previous;
       window.removeEventListener("keydown", onKeyDown);
+      desktop.removeEventListener("change", onBreakpoint);
     };
   }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <>
@@ -72,12 +104,13 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
             <Link
               href={home}
               aria-label={t.header.home(siteName)}
+              onClick={closeMenu}
               className="headline text-ink text-xl leading-none sm:text-2xl"
             >
               {siteName}
               <span className="text-accent">.</span>
             </Link>
-  
+
             {/* Nav escritorio */}
             <nav className="hidden items-center gap-8 lg:flex">
               {/*
@@ -93,39 +126,70 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
               >
                 {t.header.all}
               </Link>
-              {categories.map((category) => (
-                <div key={category.slug} className="group relative">
-                  <Link
-                    href={localePath(lang, `/?categoria=${category.slug}#catalogo`)}
-                    data-active={isActive(category)}
-                    className="link-underline text-ink-soft hover:text-ink text-[0.8rem] font-medium tracking-wide transition-colors"
-                  >
-                    {category.name}
-                  </Link>
-                  {/*
-                    Subcategorías: se abren con hover o con foco de teclado. El
-                    pt-4 hace de puente para que el menú no se cierre al bajar el mouse.
-                  */}
-                  {category.children.length > 0 && (
-                    <div className="pointer-events-none invisible absolute left-1/2 top-full z-10 -translate-x-1/2 pt-4 opacity-0 transition-opacity duration-200 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100">
-                      <ul className="border-ink/10 bg-bone/95 min-w-44 border py-2 shadow-sm backdrop-blur-md">
-                        {category.children.map((sub) => (
-                          <li key={sub.slug}>
-                            <Link
-                              href={localePath(lang, `/?categoria=${sub.slug}#catalogo`)}
-                              className={`hover:bg-bone-dark hover:text-ink block whitespace-nowrap px-5 py-2.5 text-[0.8rem] tracking-wide transition-colors ${
-                                activeCategory === sub.slug ? "text-ink font-medium" : "text-ink-soft"
-                              }`}
-                            >
-                              {sub.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+              {categories.map((category) => {
+                const hasSubs = category.children.length > 0;
+                return (
+                  <div key={category.slug} className="group relative">
+                    <div className="flex items-center gap-1.5">
+                      <Link
+                        href={localePath(lang, `/?categoria=${category.slug}#catalogo`)}
+                        data-active={isActive(category)}
+                        className="link-underline text-ink-soft hover:text-ink text-[0.8rem] font-medium tracking-wide transition-colors"
+                      >
+                        {category.name}
+                      </Link>
+                      {hasSubs && (
+                        <Chevron className="text-ink-muted h-2.5 w-2.5 transition-transform duration-300 group-hover:rotate-180 group-focus-within:rotate-180" />
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    {/*
+                      Subcategorías. El pt-5 hace de puente entre el link y el
+                      panel para que no se cierre al bajar el mouse. El panel
+                      entra con fade + leve subida, y los items con un escalonado.
+                    */}
+                    {hasSubs && (
+                      <div
+                        className={`pointer-events-none invisible absolute left-1/2 top-full z-10 -translate-x-1/2 pt-5 opacity-0 transition-[opacity,visibility] duration-200 group-hover:pointer-events-auto group-focus-within:pointer-events-auto ${dropdownOpen}`}
+                      >
+                        <div
+                          className={`border-ink/10 bg-bone/95 relative min-w-56 origin-top -translate-y-2 scale-[0.97] border shadow-[0_18px_40px_-18px_rgb(0_0_0/0.35)] backdrop-blur-md transition-transform duration-300 ease-out motion-reduce:transition-none ${dropdownPanelOpen}`}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="bg-accent absolute inset-x-0 top-0 h-px origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100 group-focus-within:scale-x-100"
+                          />
+                          <ul className="py-2">
+                            {category.children.map((sub, i) => (
+                              <li
+                                key={sub.slug}
+                                style={{ "--i": i } as React.CSSProperties}
+                                className={`-translate-x-2 opacity-0 transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none group-hover:[transition-delay:calc(var(--i)*45ms_+_70ms)] group-focus-within:[transition-delay:calc(var(--i)*45ms_+_70ms)] ${dropdownItemOpen}`}
+                              >
+                                <Link
+                                  href={localePath(lang, `/?categoria=${sub.slug}#catalogo`)}
+                                  aria-current={activeCategory === sub.slug ? "page" : undefined}
+                                  className="group/item hover:bg-bone-dark text-ink-soft hover:text-ink aria-[current=page]:text-ink flex items-center justify-between gap-6 px-5 py-2.5 text-[0.8rem] tracking-wide whitespace-nowrap transition-colors"
+                                >
+                                  <span className="transition-transform duration-300 group-hover/item:translate-x-1">
+                                    {sub.name}
+                                  </span>
+                                  <span
+                                    aria-hidden="true"
+                                    className={`bg-accent h-1 w-1 rounded-full transition-opacity ${
+                                      activeCategory === sub.slug ? "opacity-100" : "opacity-0"
+                                    }`}
+                                  />
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               <Link
                 href={localePath(lang, "/#lookbook")}
                 className="link-underline text-ink-soft hover:text-ink text-[0.8rem] font-medium tracking-wide transition-colors"
@@ -133,7 +197,7 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
                 {t.header.lookbook}
               </Link>
             </nav>
-  
+
             <div className="flex items-center gap-2 sm:gap-4">
               <LanguageSwitcher />
               <ThemeToggle />
@@ -142,22 +206,30 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
                 label={t.header.cart}
                 itemCount={isHydrated ? itemCount : 0}
               />
-  
+
+              {/* 44px: el área de toque mínima cómoda en el teléfono */}
               <button
+                ref={menuButtonRef}
                 type="button"
-                onClick={() => setMenuOpen((open) => !open)}
+                onClick={() => (menuOpen ? closeMenu() : openMenu())}
                 aria-expanded={menuOpen}
+                aria-controls="mobile-menu"
                 aria-label={menuOpen ? t.header.closeMenu : t.header.openMenu}
-                className="border-ink/15 hover:border-ink flex h-10 w-10 items-center justify-center border transition-colors lg:hidden"
+                className="border-ink/15 hover:border-ink flex h-11 w-11 touch-manipulation items-center justify-center border transition-colors lg:hidden"
               >
-                <span className="relative block h-3 w-4">
+                <span className="relative block h-3 w-[18px]">
                   <span
-                    className={`bg-ink absolute left-0 block h-px w-full transition-transform duration-300 ${
+                    className={`bg-ink absolute left-0 block h-px w-full transition-transform duration-300 ease-out ${
                       menuOpen ? "top-1.5 rotate-45" : "top-0"
                     }`}
                   />
                   <span
-                    className={`bg-ink absolute left-0 block h-px w-full transition-transform duration-300 ${
+                    className={`bg-ink absolute left-0 top-1.5 block h-px w-full transition-[opacity,transform] duration-200 ${
+                      menuOpen ? "scale-x-0 opacity-0" : "scale-x-100 opacity-100"
+                    }`}
+                  />
+                  <span
+                    className={`bg-ink absolute left-0 block h-px w-full transition-transform duration-300 ease-out ${
                       menuOpen ? "top-1.5 -rotate-45" : "top-3"
                     }`}
                   />
@@ -171,79 +243,176 @@ export function Header({ categories }: { categories: HeaderCategory[] }) {
       {/*
         El panel vive fuera del <header>: cuando el header aplica backdrop-blur
         pasa a ser el bloque contenedor de sus hijos `fixed` y el menú quedaría
-        recortado a la altura de la barra.
+        recortado a la altura de la barra. `inert` cuando está cerrado: nada de
+        adentro recibe foco ni lo lee un lector de pantalla.
       */}
       <div
-        className={`bg-bone fixed inset-0 z-40 overflow-y-auto transition-[opacity,transform] duration-500 lg:hidden ${
+        id="mobile-menu"
+        inert={!menuOpen}
+        className={`bg-bone fixed inset-0 z-40 h-dvh overflow-y-auto overscroll-contain transition-[opacity,transform] duration-500 motion-reduce:transition-none lg:hidden ${
           menuOpen
             ? "pointer-events-auto translate-y-0 opacity-100"
             : "pointer-events-none -translate-y-3 opacity-0"
         }`}
-        aria-hidden={!menuOpen}
       >
-        <nav className="container-page flex flex-col gap-1 pb-16 pt-28">
-          {[
-            { href: localePath(lang, "/#catalogo"), label: t.header.all, sub: false },
-            ...categories.flatMap((category) => [
-              {
-                href: localePath(lang, `/?categoria=${category.slug}#catalogo`),
-                label: category.name,
-                sub: false,
-              },
-              ...category.children.map((sub) => ({
-                href: localePath(lang, `/?categoria=${sub.slug}#catalogo`),
-                label: sub.name,
-                sub: true,
-              })),
-            ]),
-            { href: localePath(lang, "/#lookbook"), label: t.header.lookbook, sub: false },
-            { href: localePath(lang, "/carrito"), label: t.header.cart, sub: false },
-          ].map((item, i) => (
+        <nav className="container-page flex flex-col pb-[max(4rem,env(safe-area-inset-bottom))] pt-28">
+          <MobileRow index={0} open={menuOpen}>
             <MobileLink
-              key={item.href}
-              href={item.href}
-              label={item.label}
-              sub={item.sub}
-              index={i}
-              open={menuOpen}
-              onNavigate={() => setMenuOpen(false)}
+              href={localePath(lang, "/#catalogo")}
+              label={t.header.all}
+              onNavigate={closeMenu}
             />
-          ))}
+          </MobileRow>
+
+          {categories.map((category, i) => {
+            const hasSubs = category.children.length > 0;
+            const isExpanded = expanded === category.slug;
+            return (
+              <MobileRow key={category.slug} index={i + 1} open={menuOpen}>
+                {hasSubs ? (
+                  <div className="border-ink/10 border-b">
+                    <div className="flex items-stretch">
+                      <MobileLink
+                        href={localePath(lang, `/?categoria=${category.slug}#catalogo`)}
+                        label={category.name}
+                        onNavigate={closeMenu}
+                        bare
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setExpanded(isExpanded ? null : category.slug)}
+                        aria-expanded={isExpanded}
+                        aria-controls={`mobile-sub-${category.slug}`}
+                        aria-label={t.header.subcategories(category.name)}
+                        className="text-ink-muted active:text-ink flex w-16 shrink-0 touch-manipulation items-center justify-center"
+                      >
+                        <Chevron
+                          className={`h-4 w-4 transition-transform duration-300 ${
+                            isExpanded ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    {/* grid-rows 0fr → 1fr: anima la altura sin medirla */}
+                    <div
+                      id={`mobile-sub-${category.slug}`}
+                      className={`grid transition-[grid-template-rows] duration-400 ease-out motion-reduce:transition-none ${
+                        isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                      }`}
+                    >
+                      <ul
+                        inert={!isExpanded}
+                        className={`border-ink/15 ml-1 overflow-hidden border-l pl-5 transition-opacity duration-300 ${
+                          isExpanded ? "mb-4 opacity-100" : "opacity-0"
+                        }`}
+                      >
+                        {category.children.map((sub) => (
+                          <li key={sub.slug}>
+                            <Link
+                              href={localePath(lang, `/?categoria=${sub.slug}#catalogo`)}
+                              onClick={closeMenu}
+                              aria-current={activeCategory === sub.slug ? "page" : undefined}
+                              className="headline text-ink-soft active:text-accent-deep aria-[current=page]:text-ink block py-3 text-2xl"
+                            >
+                              {sub.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <MobileLink
+                    href={localePath(lang, `/?categoria=${category.slug}#catalogo`)}
+                    label={category.name}
+                    onNavigate={closeMenu}
+                  />
+                )}
+              </MobileRow>
+            );
+          })}
+
+          <MobileRow index={categories.length + 1} open={menuOpen}>
+            <MobileLink
+              href={localePath(lang, "/#lookbook")}
+              label={t.header.lookbook}
+              onNavigate={closeMenu}
+            />
+          </MobileRow>
+          <MobileRow index={categories.length + 2} open={menuOpen}>
+            <MobileLink
+              href={localePath(lang, "/carrito")}
+              label={t.header.cart}
+              onNavigate={closeMenu}
+            />
+          </MobileRow>
         </nav>
       </div>
     </>
   );
 }
 
+/** Entrada escalonada de cada fila del menú móvil. */
+function MobileRow({
+  index,
+  open,
+  children,
+}: {
+  index: number;
+  open: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`transition-[opacity,transform] duration-600 ease-out motion-reduce:transition-none ${
+        open ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+      }`}
+      style={{ transitionDelay: open ? `${80 + Math.min(index, MAX_STAGGER) * 50}ms` : "0ms" }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function MobileLink({
   href,
   label,
-  sub,
-  index,
-  open,
   onNavigate,
+  bare = false,
 }: {
   href: string;
   label: string;
-  sub: boolean;
-  index: number;
-  open: boolean;
   onNavigate: () => void;
+  /** dentro de una fila con acordeón: sin borde propio, lo pone la fila */
+  bare?: boolean;
 }) {
   return (
     <Link
       href={href}
       onClick={onNavigate}
-      tabIndex={open ? undefined : -1}
-      className={`border-ink/10 headline active:text-accent-deep border-b transition-[opacity,transform] duration-600 ease-out ${
-        sub ? "text-ink-soft py-3.5 pl-6 text-2xl" : "text-ink py-5 text-4xl"
-      } ${
-        open ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+      className={`headline text-ink active:text-accent-deep block py-5 text-4xl ${
+        bare ? "flex-1" : "border-ink/10 border-b"
       }`}
-      style={{ transitionDelay: open ? `${80 + index * 55}ms` : "0ms" }}
     >
       {label}
     </Link>
+  );
+}
+
+function Chevron({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M2.5 4.5 6 8l3.5-3.5" />
+    </svg>
   );
 }
 
