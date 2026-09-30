@@ -39,6 +39,7 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
       template: `%s · ${siteName}`,
     },
     description: t.meta.description,
+    appleWebApp: { title: siteName },
     openGraph: {
       type: "website",
       locale: localeTags[lang].og,
