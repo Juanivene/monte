@@ -195,10 +195,7 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/product
               <p className="whitespace-pre-line">{description}</p>
             </Accordion>
             <Accordion title={t.product.shippingTitle}>
-              <p>{t.product.shippingBody}</p>
-            </Accordion>
-            <Accordion title={t.product.returnsTitle}>
-              <p>{t.product.returnsBody}</p>
+              <p className="whitespace-pre-line">{t.product.shippingBody}</p>
             </Accordion>
           </div>
 

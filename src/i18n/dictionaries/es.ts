@@ -65,10 +65,7 @@ const es = {
     description: "Descripción",
     shippingTitle: "Envíos",
     shippingBody:
-      "Despachamos dentro de las 24 h hábiles. Envíos a todo el país por correo y entrega en moto dentro de CABA. El costo se coordina por WhatsApp junto con el pago.",
-    returnsTitle: "Cambios y devoluciones",
-    returnsBody:
-      "Tenés 30 días desde que recibís el pedido para cambiar el talle, siempre que la prenda esté sin uso y con su etiqueta.",
+      "Despacho en Miami dentro de las 24 h hábiles.\nEnvíos internacionales.\nEl costo del envío se coordina por WhatsApp al momento del pago.",
     sizeQuestion: "¿Dudas con el talle? Consultanos →",
     keepBrowsing: "Seguí mirando",
     viewAll: "Ver todo →",

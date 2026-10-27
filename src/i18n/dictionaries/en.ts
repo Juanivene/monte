@@ -62,10 +62,7 @@ const en: Dictionary = {
     description: "Description",
     shippingTitle: "Shipping",
     shippingBody:
-      "We ship within 24 business hours. Nationwide shipping across Argentina by mail, and motorbike delivery within Buenos Aires City. Shipping cost is arranged over WhatsApp, together with payment.",
-    returnsTitle: "Exchanges & returns",
-    returnsBody:
-      "You have 30 days from delivery to exchange your size, as long as the piece is unworn and still has its tag.",
+      "Miami orders ship within 24 business hours.\nInternational shipping available.\nShipping cost is arranged via WhatsApp at checkout.",
     sizeQuestion: "Not sure about your size? Ask us →",
     keepBrowsing: "Keep browsing",
     viewAll: "View all →",

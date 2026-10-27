@@ -39,7 +39,7 @@ export default async function PreviewPage({ searchParams }: PageProps<"/admin/pr
 
   const [categories, stored] = await Promise.all([
     prisma.category.findMany({
-      orderBy: { name: "asc" },
+      orderBy: [{ position: "asc" }, { name: "asc" }],
       select: { id: true, slug: true, name: true, nameEn: true, parentId: true },
     }),
     getEditableContent(),
