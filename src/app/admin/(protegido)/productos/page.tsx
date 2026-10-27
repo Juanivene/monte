@@ -61,9 +61,14 @@ export default async function AdminProductsPage({
       <PageHeader
         title="Productos"
         action={
-          <Link href="/admin/productos/nuevo" className="hidden sm:block">
-            <Button>Nuevo producto</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/admin/productos/orden">
+              <Button variant="secondary">Ordenar</Button>
+            </Link>
+            <Link href="/admin/productos/nuevo" className="hidden sm:block">
+              <Button>Nuevo producto</Button>
+            </Link>
+          </div>
         }
       />
 

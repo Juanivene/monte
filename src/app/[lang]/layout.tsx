@@ -59,7 +59,7 @@ export default async function ShopLayout({ children, params }: LayoutProps<"/[la
 
   const [categories, content] = await Promise.all([
     prisma.category.findMany({
-      orderBy: { name: "asc" },
+      orderBy: [{ position: "asc" }, { name: "asc" }],
       select: { id: true, slug: true, name: true, nameEn: true, parentId: true },
     }),
     getPublishedContent(lang),

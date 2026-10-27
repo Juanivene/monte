@@ -47,8 +47,11 @@ export async function createCategory(input: CategoryInput): Promise<ActionResult
     async (candidate) => (await prisma.category.count({ where: { slug: candidate } })) > 0,
   );
 
+  // las nuevas van al final de su grupo
+  const position = await prisma.category.count({ where: { parentId } });
+
   await prisma.category.create({
-    data: { name: parsed.data.name, nameEn: parsed.data.nameEn || null, slug, parentId },
+    data: { name: parsed.data.name, nameEn: parsed.data.nameEn || null, slug, parentId, position },
   });
   revalidateCategories();
   return { ok: true };
@@ -83,6 +86,19 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   // sus subcategorías se borran en cascada; los productos de la categoría y de
   // sus subcategorías quedan sin categoría (relación opcional, onDelete: SetNull)
   await prisma.category.delete({ where: { id } });
+  revalidateCategories();
+  return { ok: true };
+}
+
+/**
+ * Guarda el orden de un grupo de hermanas (las principales, o las
+ * subcategorías de un mismo padre): `ids` va en el orden final.
+ */
+export async function reorderCategories(ids: string[]): Promise<ActionResult> {
+  await requireAdmin();
+  await prisma.$transaction(
+    ids.map((id, position) => prisma.category.update({ where: { id }, data: { position } })),
+  );
   revalidateCategories();
   return { ok: true };
 }

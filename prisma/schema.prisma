@@ -49,6 +49,8 @@ model Category {
   /// Versión en inglés; si está vacía la tienda en /en muestra el nombre en español.
   nameEn    String?
   slug      String    @unique
+  /// Orden en que se muestran en la tienda (menor primero), entre hermanas.
+  position  Int       @default(0)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   products  Product[]
@@ -83,6 +85,9 @@ model Product {
   colorName     String?
   colorNameEn   String?
   isActive      Boolean  @default(true)
+  /// Orden en la tienda (menor primero). Los productos nuevos arrancan en 0,
+  /// así que aparecen arriba hasta que se reordenen.
+  position      Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

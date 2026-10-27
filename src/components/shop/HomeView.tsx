@@ -29,7 +29,9 @@ export async function HomeView({
 }) {
   const t = getDictionary(lang);
   // Las categorías van primero: elegir una incluye los productos de sus subcategorías.
-  const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
+  const categories = await prisma.category.findMany({
+    orderBy: [{ position: "asc" }, { name: "asc" }],
+  });
   const tree = buildCategoryTree(categories, lang);
   const active = resolveActiveCategory(tree, categoria);
 
@@ -45,7 +47,7 @@ export async function HomeView({
         images: { orderBy: { order: "asc" }, take: 2 },
         variants: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ position: "asc" }, { createdAt: "desc" }],
     }),
     prisma.product.count({ where: { isActive: true } }),
     prisma.legend.findMany({ where: { group: "HERO" }, orderBy: { order: "asc" } }),
